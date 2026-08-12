@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring Boot Cheat Sheet</title>
+<style>
+/*
+  THEME: Charcoal + Spring Green
+  Background : #1a1a2e → #16213e (deep navy charcoal)
+  Card bg    : #0f3460  subtle dark blue-slate
+  Accent     : #4ade80  bright spring green
+  Code text  : #e2fce4  near-white with green tint  (high contrast on dark)
+  Body text  : #e2e8f0  clean white-grey
+  Muted      : #8ba4a0
+*/
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #111827;
+  color: #e2e8f0;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+header {
+  background: linear-gradient(135deg, #064e3b 0%, #111827 100%);
+  padding: 22px 16px 18px;
+  text-align: center;
+  border-bottom: 2px solid #4ade80;
+}
+header h1 { font-size: 1.45rem; color: #4ade80; font-weight: 800; letter-spacing: -0.3px; }
+header p  { font-size: 0.82rem; color: #9ca3af; margin-top: 5px; }
+
+.sticky-bar {
+  position: sticky; top: 0; z-index: 200;
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+  padding: 10px 12px;
+}
+.sticky-bar input {
+  width: 100%; padding: 9px 14px; border-radius: 8px;
+  border: 1px solid #374151;
+  background: #111827; color: #e2e8f0;
+  font-size: 0.92rem; outline: none;
+}
+.sticky-bar input:focus { border-color: #4ade80; }
+.sticky-bar input::placeholder { color: #6b7280; }
+
+.section-wrap { margin: 14px 10px 4px; }
+.section-title {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.6px;
+  color: #4ade80; font-weight: 800; padding-bottom: 7px;
+  border-bottom: 1px solid #374151; margin-bottom: 8px;
+}
+
+.q-card {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 10px; margin-bottom: 7px; overflow: hidden;
+}
+.q-card.open { border-color: #4ade80; }
+
+.q-trigger {
+  display: flex; align-items: center; gap: 10px; padding: 13px 14px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.q-trigger:active { background: #263345; }
+
+.q-text { flex: 1; font-size: 0.88rem; font-weight: 600; color: #d1fae5; line-height: 1.35; }
+.q-card.open .q-text { color: #4ade80; }
+
+.chevron {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: #374151;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #9ca3af;
+  transition: transform 0.22s ease, background 0.2s;
+}
+.q-card.open .chevron { transform: rotate(180deg); background: #4ade80; color: #111827; }
+
+.q-body { display: none; border-top: 1px solid #374151; }
+.q-card.open .q-body { display: block; }
+
+.note {
+  margin: 10px 14px 0; background: #0d1f16;
+  border-left: 3px solid #4ade80;
+  border-radius: 0 6px 6px 0; padding: 8px 11px;
+  font-size: 0.78rem; color: #86efac; line-height: 1.55;
+}
+
+.variant { padding: 10px 14px 12px; border-bottom: 1px solid #111827; }
+.variant:last-child { border-bottom: none; }
+.vlabel {
+  font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: #34d399; margin-bottom: 7px;
+}
+
+pre {
+  background: #0d1117;
+  border: 1px solid #374151;
+  border-radius: 7px; padding: 12px; overflow-x: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 0.74rem; line-height: 1.7;
+  color: #e2fce4;   /* near-white with green tint – excellent contrast */
+  white-space: pre;
+}
+
+.no-results { text-align: center; padding: 50px 20px; color: #374151; font-size: 0.9rem; }
+
+/* FAB */
+#fabBtn {
+  position: fixed; bottom: 24px; right: 20px; width: 54px; height: 54px;
+  border-radius: 50%; background: #4ade80; color: #111827;
+  font-size: 2rem; font-weight: 300; border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(74,222,128,0.4); z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1; transition: transform 0.15s, box-shadow 0.15s;
+}
+#fabBtn:active { transform: scale(0.92); box-shadow: 0 2px 10px rgba(74,222,128,0.3); }
+
+/* Modal backdrop */
+#addModal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.80); z-index: 1000;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+@media (min-width: 600px) { #addModal { align-items: center; padding: 20px; } }
+
+/* Modal box */
+#modalBox {
+  background: #1f2937; border-radius: 16px 16px 0 0; width: 100%;
+  max-width: 620px; max-height: 92vh; display: flex; flex-direction: column;
+  overflow: hidden; border: 1px solid #4ade80;
+}
+@media (min-width: 600px) { #modalBox { border-radius: 16px; } }
+
+#modalHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid #374151; flex-shrink: 0;
+}
+#modalTitle { font-size: 1rem; font-weight: 700; color: #4ade80; }
+#modalClose {
+  background: #374151; border: none; color: #9ca3af;
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  font-size: 0.8rem; display: flex; align-items: center; justify-content: center;
+}
+#modalClose:active { background: #4b5563; }
+
+#modalBody { padding: 16px 18px; overflow-y: auto; flex: 1; }
+
+.modal-label {
+  display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: #4ade80; margin-bottom: 6px; margin-top: 14px;
+}
+.modal-label:first-child { margin-top: 0; }
+
+.modal-input {
+  width: 100%; padding: 9px 12px; border-radius: 7px;
+  border: 1px solid #374151;
+  background: #111827; color: #e2e8f0;
+  font-size: 0.88rem; outline: none; margin-bottom: 2px;
+}
+.modal-input:focus { border-color: #4ade80; }
+
+.modal-code {
+  width: 100%; padding: 9px 12px; border-radius: 7px;
+  border: 1px solid #374151;
+  background: #0d1117; color: #e2fce4;
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem; line-height: 1.6; outline: none; resize: vertical; margin-bottom: 2px;
+}
+.modal-code:focus { border-color: #4ade80; }
+
+.variant-block {
+  background: #111827; border: 1px solid #374151;
+  border-radius: 8px; padding: 12px; margin-bottom: 10px;
+}
+.vb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.vb-label { font-size: 0.75rem; font-weight: 700; color: #6b7280; }
+.rm-variant {
+  background: #1f2937; border: 1px solid #374151; color: #f87171;
+  border-radius: 5px; padding: 3px 8px; font-size: 0.7rem; cursor: pointer;
+}
+
+#addVariantBtn {
+  width: 100%; padding: 9px; margin-top: 4px; background: transparent;
+  border: 1px dashed #374151; color: #6b7280;
+  border-radius: 7px; font-size: 0.82rem; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+#addVariantBtn:hover, #addVariantBtn:active { border-color: #4ade80; color: #4ade80; }
+
+#modalFooter {
+  display: flex; gap: 10px; padding: 14px 18px;
+  border-top: 1px solid #374151; flex-shrink: 0;
+}
+#cancelBtn {
+  flex: 1; padding: 11px; border-radius: 8px;
+  border: 1px solid #374151; background: transparent;
+  color: #9ca3af; font-size: 0.9rem; cursor: pointer;
+}
+#cancelBtn:active { background: #263345; }
+#saveBtn {
+  flex: 2; padding: 11px; border-radius: 8px; border: none;
+  background: #4ade80; color: #111827;
+  font-size: 0.9rem; font-weight: 700; cursor: pointer;
+}
+#saveBtn:active { background: #22c55e; }
+
+.custom-card { border-color: #064e3b !important; }
+.custom-card.open { border-color: #4ade80 !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>&#127807; Spring Boot Cheat Sheet</h1>
+  <p>Tap a question to see the code &bull; Tap <strong>+</strong> to add your own</p>
+</header>
+<div class="sticky-bar">
+  <input type="text" id="searchBox" placeholder="Search (e.g. annotation, REST, JPA, security...)" />
+</div>
+<div id="root"></div>
+<div id="noResults" class="no-results" style="display:none">No matches found.</div>
+<button id="fabBtn" onclick="openModal()" title="Add new question">+</button>
+<div id="addModal" style="display:none">
+  <div id="modalBox">
+    <div id="modalHeader">
+      <span id="modalTitle">Add New Question</span>
+      <button id="modalClose" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div id="modalBody">
+      <label class="modal-label">Question Title *</label>
+      <input type="text" class="modal-input" id="qTitle" placeholder="e.g. How to configure datasource?" />
+      <label class="modal-label">Note / Tip (optional)</label>
+      <input type="text" class="modal-input" id="qNote" placeholder="e.g. Used in Spring Boot 3.x" />
+      <label class="modal-label" style="margin-top:16px">Answers / Variants</label>
+      <div id="variantsWrap"></div>
+      <button id="addVariantBtn" type="button" onclick="addVariant()">+ Add Another Variant</button>
+    </div>
+    <div id="modalFooter">
+      <button id="cancelBtn" onclick="closeModal()">Cancel</button>
+      <button id="saveBtn" onclick="saveQuestion()">Save Question</button>
+    </div>
+  </div>
+</div>
+<script>
+var SECTIONS = [
+{
+  title: "Core Annotations",
+  qs: [
+    {
+      q: "What is @SpringBootApplication and what does it combine?",
+      note: "Single annotation that bootstraps the entire Spring Boot application.",
+      variants: [{l:"@SpringBootApplication usage", c:
+`@SpringBootApplication  // combines @Configuration + @EnableAutoConfiguration + @ComponentScan
+public class MyApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(MyApplication.class, args);
+    }
+}`}]
+    },
+    {
+      q: "What is the difference between @Component, @Service, @Repository, @Controller?",
+      note: "All are specializations of @Component. Spring treats them the same for bean creation but they carry semantic meaning.",
+      variants: [{l:"All four stereotypes", c:
+`@Component       // generic Spring-managed bean
+public class MyUtil { }
+
+@Service         // business/service layer
+public class UserService { }
+
+@Repository      // data access layer – also translates DB exceptions
+public class UserRepository { }
+
+@Controller      // web layer – handles HTTP requests (returns views)
+public class UserController { }
+
+@RestController  // @Controller + @ResponseBody (returns JSON/XML directly)
+public class UserRestController { }`}]
+    },
+    {
+      q: "What is @Autowired and how does dependency injection work?",
+      note: "Prefer constructor injection over field injection — it makes dependencies explicit and easier to test.",
+      variants: [
+        {l:"Field injection (not recommended)", c:
+`@Service
+public class OrderService {
+    @Autowired
+    private UserService userService; // field injection
+}`},
+        {l:"Constructor injection (recommended)", c:
+`@Service
+public class OrderService {
+    private final UserService userService;
+
+    // Spring auto-injects when there is only one constructor
+    public OrderService(UserService userService) {
+        this.userService = userService;
+    }
+}`},
+        {l:"Setter injection", c:
+`@Service
+public class OrderService {
+    private UserService userService;
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+}`}
+      ]
+    },
+    {
+      q: "What is @Bean and @Configuration?",
+      note: "@Configuration marks a class as a source of bean definitions. @Bean marks a method whose return value is registered as a bean.",
+      variants: [{l:"@Configuration + @Bean", c:
+`@Configuration
+public class AppConfig {
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
+}`}]
+    },
+    {
+      q: "What is @Value and how do you inject properties?",
+      variants: [
+        {l:"@Value from application.properties", c:
+`# application.properties
+app.name=MyApp
+app.version=1.0.0
+
+@Component
+public class AppInfo {
+    @Value("\${app.name}")
+    private String appName;
+
+    @Value("\${app.version}")
+    private String version;
+
+    @Value("\${app.timeout:5000}") // default 5000 if not set
+    private int timeout;
+}`},
+        {l:"@ConfigurationProperties (type-safe, preferred)", c:
+`# application.properties
+app.name=MyApp
+app.version=1.0.0
+app.timeout=3000
+
+@ConfigurationProperties(prefix = "app")
+@Component
+public class AppProperties {
+    private String name;
+    private String version;
+    private int timeout;
+    // getters and setters required
+}`}
+      ]
+    },
+    {
+      q: "What is @Qualifier and when do you use it?",
+      note: "Use @Qualifier when multiple beans of the same type exist and Spring can't decide which one to inject.",
+      variants: [{l:"@Qualifier example", c:
+`@Component("mysqlRepo")
+public class MySQLUserRepository implements UserRepository { }
+
+@Component("mongoRepo")
+public class MongoUserRepository implements UserRepository { }
+
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+
+    public UserService(@Qualifier("mysqlRepo") UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+}`}]
+    },
+    {
+      q: "What is @Primary?",
+      note: "@Primary marks a bean as the default when multiple beans of the same type exist. Can be overridden by @Qualifier.",
+      variants: [{l:"@Primary example", c:
+`@Primary
+@Component
+public class MySQLUserRepository implements UserRepository { }
+
+@Component
+public class MongoUserRepository implements UserRepository { }
+
+@Service
+public class UserService {
+    // MySQLUserRepository will be injected by default
+    @Autowired
+    private UserRepository userRepository;
+}`}]
+    },
+    {
+      q: "What is @Scope and what bean scopes are available?",
+      variants: [{l:"Bean scope examples", c:
+`// singleton (default) – one instance per Spring context
+@Component
+@Scope("singleton")
+public class SingletonBean { }
+
+// prototype – new instance every time it is requested
+@Component
+@Scope("prototype")
+public class PrototypeBean { }
+
+// request – one instance per HTTP request (web only)
+@Component
+@Scope("request")
+public class RequestBean { }
+
+// session – one instance per HTTP session (web only)
+@Component
+@Scope("session")
+public class SessionBean { }`}]
+    },
+    {
+      q: "What are @PostConstruct and @PreDestroy?",
+      variants: [{l:"Lifecycle callback annotations", c:
+`@Component
+public class CacheManager {
+
+    @PostConstruct  // runs after bean is created and injected
+    public void init() {
+        System.out.println("Cache initialized");
+    }
+
+    @PreDestroy     // runs before bean is destroyed
+    public void cleanup() {
+        System.out.println("Cache cleared");
+    }
+}`}]
+    },
+    {
+      q: "What is @Lazy and when should you use it?",
+      note: "By default all singleton beans are created at startup. @Lazy delays creation until first use.",
+      variants: [{l:"@Lazy example", c:
+`@Component
+@Lazy
+public class HeavyService {
+    public HeavyService() {
+        System.out.println("HeavyService created"); // only when first accessed
+    }
+}
+
+@Service
+public class MyService {
+    @Autowired
+    @Lazy
+    private HeavyService heavyService; // injected lazily
+}`}]
+    }
+  ]
+},
+{
+  title: "REST API – Controllers & Mappings",
+  qs: [
+    {
+      q: "How do you create a REST controller with all HTTP methods?",
+      variants: [{l:"Full REST controller", c:
+`@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    // GET all
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userService.findAll();
+    }
+
+    // GET by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        User user = userService.findById(id);
+        return ResponseEntity.ok(user);
+    }
+
+    // POST – create
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody @Valid User user) {
+        User created = userService.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    // PUT – full update
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id,
+                                           @RequestBody @Valid User user) {
+        User updated = userService.update(id, user);
+        return ResponseEntity.ok(updated);
+    }
+
+    // PATCH – partial update
+    @PatchMapping("/{id}")
+    public ResponseEntity<User> partialUpdate(@PathVariable Long id,
+                                              @RequestBody Map<String, Object> fields) {
+        User updated = userService.partialUpdate(id, fields);
+        return ResponseEntity.ok(updated);
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+}`}]
+    },
+    {
+      q: "What is @PathVariable vs @RequestParam vs @RequestBody?",
+      variants: [
+        {l:"@PathVariable – from URL path", c:
+`// URL: GET /api/users/42
+@GetMapping("/api/users/{id}")
+public User getUser(@PathVariable Long id) {
+    return userService.findById(id);
+}
+
+// Multiple path variables
+// URL: GET /api/users/42/orders/7
+@GetMapping("/api/users/{userId}/orders/{orderId}")
+public Order getOrder(@PathVariable Long userId,
+                      @PathVariable Long orderId) {
+    return orderService.find(userId, orderId);
+}`},
+        {l:"@RequestParam – from query string", c:
+`// URL: GET /api/users?page=0&size=10&name=John
+@GetMapping("/api/users")
+public Page<User> getUsers(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) String name) {
+    return userService.findAll(page, size, name);
+}`},
+        {l:"@RequestBody – from request body (JSON)", c:
+`@PostMapping("/api/users")
+public ResponseEntity<User> createUser(@RequestBody @Valid User user) {
+    // Spring automatically deserializes JSON body to User object
+    User saved = userService.save(user);
+    return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+}`}
+      ]
+    },
+    {
+      q: "How do you use ResponseEntity to return proper HTTP responses?",
+      variants: [{l:"ResponseEntity examples", c:
+`// 200 OK with body
+return ResponseEntity.ok(user);
+
+// 201 Created with body
+return ResponseEntity.status(HttpStatus.CREATED).body(user);
+
+// 204 No Content (e.g. delete)
+return ResponseEntity.noContent().build();
+
+// 404 Not Found
+return ResponseEntity.notFound().build();
+
+// 400 Bad Request with message
+return ResponseEntity.badRequest().body("Invalid input");
+
+// Custom headers
+return ResponseEntity.ok()
+        .header("X-Custom-Header", "value")
+        .body(user);
+
+// Dynamic status
+HttpStatus status = found ? HttpStatus.OK : HttpStatus.NOT_FOUND;
+return ResponseEntity.status(status).body(result);`}]
+    },
+    {
+      q: "How do you handle exceptions globally using @ControllerAdvice?",
+      note: "@ControllerAdvice + @ExceptionHandler gives a centralised place for all error handling.",
+      variants: [{l:"Global exception handler", c:
+`@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(
+            ResourceNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.NOT_FOUND.value(),
+            ex.getMessage(),
+            request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidation(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors()
+          .forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
+        ErrorResponse error = new ErrorResponse(500, "Internal Server Error", "");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+}`}]
+    },
+    {
+      q: "How do you validate request body fields using Bean Validation?",
+      note: "Add spring-boot-starter-validation dependency. Use @Valid or @Validated to trigger validation.",
+      variants: [{l:"Bean validation on request body", c:
+`// 1. DTO with validation annotations
+public class UserRequest {
+    @NotBlank(message = "Name is required")
+    private String name;
+
+    @Email(message = "Invalid email format")
+    @NotBlank
+    private String email;
+
+    @Min(value = 18, message = "Age must be at least 18")
+    @Max(value = 100)
+    private int age;
+
+    @NotNull
+    @Size(min = 6, message = "Password must be at least 6 characters")
+    private String password;
+
+    @Pattern(regexp = "\\d{10}", message = "Phone must be 10 digits")
+    private String phone;
+    // getters/setters
+}
+
+// 2. Controller – trigger with @Valid
+@PostMapping("/api/users")
+public ResponseEntity<User> createUser(@RequestBody @Valid UserRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request));
+}`}]
+    },
+    {
+      q: "How do you implement pagination and sorting in a REST API?",
+      variants: [{l:"Pagination with Pageable", c:
+`// Controller
+@GetMapping("/api/users")
+public ResponseEntity<Page<User>> getUsers(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "id") String sortBy,
+        @RequestParam(defaultValue = "asc") String direction) {
+
+    Sort sort = direction.equalsIgnoreCase("desc")
+            ? Sort.by(sortBy).descending()
+            : Sort.by(sortBy).ascending();
+
+    Pageable pageable = PageRequest.of(page, size, sort);
+    Page<User> users = userService.findAll(pageable);
+    return ResponseEntity.ok(users);
+}
+
+// Service
+public Page<User> findAll(Pageable pageable) {
+    return userRepository.findAll(pageable);
+}
+
+// URL example: GET /api/users?page=0&size=5&sortBy=name&direction=desc`}]
+    }
+  ]
+},
+{
+  title: "Spring Data JPA",
+  qs: [
+    {
+      q: "How do you create a JPA entity?",
+      variants: [{l:"Full JPA entity example", c:
+`@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "first_name", nullable = false, length = 50)
+    private String firstName;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(name = "created_at")
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
+
+    @Transient  // not persisted to DB
+    private String fullDisplayName;
+
+    // getters, setters, constructors
+}`}]
+    },
+    {
+      q: "How do you create a JPA Repository and use built-in methods?",
+      variants: [
+        {l:"JpaRepository with built-in methods", c:
+`public interface UserRepository extends JpaRepository<User, Long> {
+    // JpaRepository provides out of the box:
+    // save(entity), findById(id), findAll(), deleteById(id),
+    // count(), existsById(id), findAll(Pageable), saveAll(list)
+}
+
+// Usage in service
+@Service
+public class UserService {
+    @Autowired
+    private UserRepository userRepository;
+
+    public User save(User user)       { return userRepository.save(user); }
+    public Optional<User> findById(Long id) { return userRepository.findById(id); }
+    public List<User> findAll()       { return userRepository.findAll(); }
+    public void delete(Long id)       { userRepository.deleteById(id); }
+    public long count()               { return userRepository.count(); }
+    public boolean exists(Long id)    { return userRepository.existsById(id); }
+}`},
+        {l:"Derived query methods (method name = query)", c:
+`public interface UserRepository extends JpaRepository<User, Long> {
+
+    // SELECT * FROM users WHERE email = ?
+    Optional<User> findByEmail(String email);
+
+    // SELECT * FROM users WHERE first_name = ? AND status = ?
+    List<User> findByFirstNameAndStatus(String firstName, UserStatus status);
+
+    // SELECT * FROM users WHERE salary > ?
+    List<User> findBySalaryGreaterThan(Double salary);
+
+    // SELECT * FROM users WHERE name LIKE %?%
+    List<User> findByNameContaining(String keyword);
+
+    // SELECT * FROM users WHERE email LIKE ?%
+    List<User> findByEmailStartingWith(String prefix);
+
+    // SELECT * FROM users ORDER BY created_at DESC
+    List<User> findAllByOrderByCreatedAtDesc();
+
+    // SELECT COUNT(*) FROM users WHERE department = ?
+    long countByDepartment(String department);
+
+    // SELECT * FROM users WHERE status = ? (with pagination)
+    Page<User> findByStatus(UserStatus status, Pageable pageable);
+
+    // EXISTS check
+    boolean existsByEmail(String email);
+}`}
+      ]
+    },
+    {
+      q: "How do you write custom queries using @Query?",
+      variants: [
+        {l:"JPQL @Query", c:
+`public interface UserRepository extends JpaRepository<User, Long> {
+
+    // JPQL – uses entity class and field names (not table/column names)
+    @Query("SELECT u FROM User u WHERE u.email = :email AND u.status = :status")
+    Optional<User> findByEmailAndStatus(@Param("email") String email,
+                                        @Param("status") UserStatus status);
+
+    // JPQL – with LIKE
+    @Query("SELECT u FROM User u WHERE u.name LIKE %:keyword%")
+    List<User> searchByName(@Param("keyword") String keyword);
+
+    // JPQL – custom DTO projection
+    @Query("SELECT new com.example.dto.UserSummary(u.id, u.name, u.email) FROM User u")
+    List<UserSummary> findAllSummaries();
+}`},
+        {l:"Native @Query (raw SQL)", c:
+`public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Query(value = "SELECT * FROM users WHERE dept_id = :deptId", nativeQuery = true)
+    List<User> findByDepartmentNative(@Param("deptId") Long deptId);
+
+    // Native with pagination
+    @Query(value = "SELECT * FROM users WHERE status = :status",
+           countQuery = "SELECT COUNT(*) FROM users WHERE status = :status",
+           nativeQuery = true)
+    Page<User> findByStatusNative(@Param("status") String status, Pageable pageable);
+
+    // Native update/delete – needs @Modifying + @Transactional
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE users SET status = :status WHERE id = :id", nativeQuery = true)
+    int updateUserStatus(@Param("id") Long id, @Param("status") String status);
+}`}
+      ]
+    },
+    {
+      q: "How do you map entity relationships (OneToMany, ManyToOne, ManyToMany)?",
+      variants: [
+        {l:"@OneToMany and @ManyToOne (bidirectional)", c:
+`@Entity
+public class Department {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+
+    // One department has many employees
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Employee> employees = new ArrayList<>();
+}
+
+@Entity
+public class Employee {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+
+    // Many employees belong to one department
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dept_id")
+    private Department department;
+}`},
+        {l:"@ManyToMany with join table", c:
+`@Entity
+public class Student {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(
+        name = "student_course",
+        joinColumns = @JoinColumn(name = "student_id"),
+        inverseJoinColumns = @JoinColumn(name = "course_id")
+    )
+    private List<Course> courses = new ArrayList<>();
+}
+
+@Entity
+public class Course {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String title;
+
+    @ManyToMany(mappedBy = "courses")
+    private List<Student> students = new ArrayList<>();
+}`},
+        {l:"@OneToOne", c:
+`@Entity
+public class User {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "profile_id", referencedColumnName = "id")
+    private UserProfile profile;
+}
+
+@Entity
+public class UserProfile {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String bio;
+    private String avatarUrl;
+
+    @OneToOne(mappedBy = "profile")
+    private User user;
+}`}
+      ]
+    },
+    {
+      q: "What is the difference between FetchType.LAZY and FetchType.EAGER?",
+      note: "Always prefer LAZY. EAGER can cause N+1 query problems and load too much data unnecessarily.",
+      variants: [{l:"LAZY vs EAGER explained with code", c:
+`// EAGER – related data loaded immediately with parent
+@ManyToOne(fetch = FetchType.EAGER)  // default for @ManyToOne, @OneToOne
+@JoinColumn(name = "dept_id")
+private Department department;
+// SELECT * FROM employee JOIN department ... (always joins)
+
+// LAZY – related data loaded only when accessed
+@OneToMany(fetch = FetchType.LAZY)   // default for @OneToMany, @ManyToMany
+@JoinColumn(name = "dept_id")
+private List<Employee> employees;
+// SELECT * FROM department (no join)
+// SELECT * FROM employee WHERE dept_id=? (only when employees is accessed)
+
+// Fix N+1 with JOIN FETCH in JPQL
+@Query("SELECT d FROM Department d JOIN FETCH d.employees WHERE d.id = :id")
+Optional<Department> findByIdWithEmployees(@Param("id") Long id);`}]
+    },
+    {
+      q: "How do you configure the datasource and JPA in application.properties?",
+      variants: [
+        {l:"MySQL datasource configuration", c:
+`# application.properties
+
+# Datasource
+spring.datasource.url=jdbc:mysql://localhost:3306/mydb
+spring.datasource.username=root
+spring.datasource.password=secret
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA / Hibernate
+spring.jpa.hibernate.ddl-auto=update
+# create       – drop and recreate schema on startup
+# create-drop  – create on start, drop on shutdown
+# update        – update schema without dropping data (dev)
+# validate      – validate schema, no changes (prod)
+# none          – do nothing (prod)
+
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect`},
+        {l:"PostgreSQL datasource configuration", c:
+`spring.datasource.url=jdbc:postgresql://localhost:5432/mydb
+spring.datasource.username=postgres
+spring.datasource.password=secret
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true`}
+      ]
+    },
+    {
+      q: "What is @Transactional and how does it work?",
+      note: "@Transactional on a method wraps it in a DB transaction. If an exception is thrown, it rolls back automatically.",
+      variants: [{l:"@Transactional usage", c:
+`@Service
+public class OrderService {
+
+    @Autowired private OrderRepository orderRepo;
+    @Autowired private InventoryService inventoryService;
+    @Autowired private PaymentService paymentService;
+
+    @Transactional  // if ANY step fails, entire transaction rolls back
+    public Order placeOrder(OrderRequest request) {
+        Order order = orderRepo.save(new Order(request));
+        inventoryService.deductStock(request.getProductId(), request.getQuantity());
+        paymentService.charge(request.getUserId(), order.getTotal());
+        return order;
+    }
+
+    // Read-only transaction (better performance)
+    @Transactional(readOnly = true)
+    public List<Order> findAll() {
+        return orderRepo.findAll();
+    }
+
+    // Rollback only for specific exceptions
+    @Transactional(rollbackFor = PaymentException.class)
+    public void processPayment(Long orderId) { ... }
+
+    // Propagation types
+    @Transactional(propagation = Propagation.REQUIRES_NEW) // always new transaction
+    public void auditLog(String action) { ... }
+}`}]
+    }
+  ]
+},
+{
+  title: "application.properties / YAML",
+  qs: [
+    {
+      q: "Common application.properties configuration reference",
+      variants: [
+        {l:"Server & App settings", c:
+`# Server
+server.port=8080
+server.servlet.context-path=/api
+server.error.include-message=always
+
+# Application name
+spring.application.name=my-app
+
+# Logging
+logging.level.root=INFO
+logging.level.com.example=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+logging.file.name=logs/app.log
+
+# Actuator
+management.endpoints.web.exposure.include=health,info,metrics
+management.endpoint.health.show-details=always`},
+        {l:"Profiles – environment-specific configs", c:
+`# application.properties (shared)
+spring.application.name=my-app
+
+# application-dev.properties
+spring.datasource.url=jdbc:mysql://localhost:3306/devdb
+logging.level.com.example=DEBUG
+
+# application-prod.properties
+spring.datasource.url=jdbc:mysql://prod-server:3306/proddb
+logging.level.com.example=WARN
+spring.jpa.show-sql=false
+
+# Activate a profile
+spring.profiles.active=dev
+
+# Or via command line:
+# java -jar app.jar --spring.profiles.active=prod`}
+      ]
+    },
+    {
+      q: "How to use application.yml instead of .properties?",
+      note: "YAML is hierarchical and cleaner for nested configs. Both files work — don't use both at once.",
+      variants: [{l:"application.yml equivalent", c:
+`spring:
+  application:
+    name: my-app
+  datasource:
+    url: jdbc:mysql://localhost:3306/mydb
+    username: root
+    password: secret
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+
+---
+# Dev profile section (same file using ---)
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/devdb`}]
+    }
+  ]
+},
+{
+  title: "Spring Security",
+  qs: [
+    {
+      q: "How do you set up basic Spring Security configuration?",
+      note: "Spring Boot 3.x uses the new component-based approach — WebSecurityConfigurerAdapter is removed.",
+      variants: [{l:"SecurityFilterChain (Spring Boot 3.x)", c:
+`@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()   // public endpoints
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authManager(AuthenticationConfiguration config)
+            throws Exception {
+        return config.getAuthenticationManager();
+    }
+}`}]
+    },
+    {
+      q: "How do you implement JWT authentication in Spring Boot?",
+      variants: [
+        {l:"JWT utility class", c:
+`@Component
+public class JwtUtil {
+    @Value("\${jwt.secret}")
+    private String secret;
+
+    @Value("\${jwt.expiration}")
+    private long expiration; // in ms
+
+    public String generateToken(String username) {
+        return Jwts.builder()
+            .setSubject(username)
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + expiration))
+            .signWith(SignatureAlgorithm.HS256, secret)
+            .compact();
+    }
+
+    public String extractUsername(String token) {
+        return Jwts.parser().setSigningKey(secret)
+            .parseClaimsJws(token).getBody().getSubject();
+    }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+        String username = extractUsername(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token) {
+        Date exp = Jwts.parser().setSigningKey(secret)
+            .parseClaimsJws(token).getBody().getExpiration();
+        return exp.before(new Date());
+    }
+}`},
+        {l:"JWT filter", c:
+`@Component
+public class JwtAuthFilter extends OncePerRequestFilter {
+
+    @Autowired private JwtUtil jwtUtil;
+    @Autowired private UserDetailsService userDetailsService;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String authHeader = request.getHeader("Authorization");
+        String token = null, username = null;
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+            username = jwtUtil.extractUsername(token);
+        }
+
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            if (jwtUtil.validateToken(token, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        }
+        filterChain.doFilter(request, response);
+    }
+}`}
+      ]
+    },
+    {
+      q: "How do you implement UserDetailsService for custom authentication?",
+      variants: [{l:"Custom UserDetailsService", c:
+`@Service
+public class CustomUserDetailsService implements UserDetailsService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+
+        return org.springframework.security.core.userdetails.User.builder()
+            .username(user.getEmail())
+            .password(user.getPassword()) // already BCrypt encoded
+            .roles(user.getRole().name()) // e.g. "USER", "ADMIN"
+            .build();
+    }
+}`}]
+    },
+    {
+      q: "What are @PreAuthorize and @Secured method-level security annotations?",
+      note: "Add @EnableMethodSecurity on your config class to use method-level security.",
+      variants: [{l:"Method-level security", c:
+`@Configuration
+@EnableMethodSecurity
+public class SecurityConfig { ... }
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    // Only ADMIN role can access
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) { ... }
+
+    // USER or ADMIN
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @GetMapping("/profile")
+    public ResponseEntity<User> getProfile() { ... }
+
+    // Expression based – user can only access their own data
+    @PreAuthorize("#id == authentication.principal.id")
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUser(@PathVariable Long id) { ... }
+
+    // @Secured alternative
+    @Secured("ROLE_ADMIN")
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) { ... }
+}`}]
+    }
+  ]
+},
+{
+  title: "Service Layer & Business Logic",
+  qs: [
+    {
+      q: "What is the proper structure of a Service class?",
+      variants: [{l:"Standard service class pattern", c:
+`@Service
+@Transactional(readOnly = true) // default read-only for all methods
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    // Constructor injection (no @Autowired needed)
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    public User findById(Long id) {
+        return userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+    }
+
+    @Transactional  // override read-only for write operations
+    public User create(UserRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new DuplicateResourceException("Email already exists");
+        }
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User update(Long id, UserRequest request) {
+        User user = findById(id);
+        user.setName(request.getName());
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        User user = findById(id);
+        userRepository.delete(user);
+    }
+}`}]
+    },
+    {
+      q: "How do you use DTO (Data Transfer Object) pattern?",
+      note: "Never expose your entity directly to the API. Use DTOs to control what data is sent/received.",
+      variants: [{l:"Request DTO + Response DTO + Mapper", c:
+`// Request DTO – what client sends
+public class UserRequest {
+    @NotBlank private String name;
+    @Email    private String email;
+    @NotBlank private String password;
+    // getters/setters
+}
+
+// Response DTO – what API returns (no password!)
+public class UserResponse {
+    private Long id;
+    private String name;
+    private String email;
+    private LocalDateTime createdAt;
+    // getters/setters
+}
+
+// Mapper class
+@Component
+public class UserMapper {
+    public User toEntity(UserRequest req) {
+        User user = new User();
+        user.setName(req.getName());
+        user.setEmail(req.getEmail());
+        return user;
+    }
+    public UserResponse toResponse(User user) {
+        UserResponse res = new UserResponse();
+        res.setId(user.getId());
+        res.setName(user.getName());
+        res.setEmail(user.getEmail());
+        res.setCreatedAt(user.getCreatedAt());
+        return res;
+    }
+}`}]
+    }
+  ]
+},
+{
+  title: "Spring Boot Actuator & Logging",
+  qs: [
+    {
+      q: "How do you configure and use Spring Boot Actuator?",
+      note: "Add spring-boot-starter-actuator dependency. Never expose all endpoints in production.",
+      variants: [{l:"Actuator configuration and endpoints", c:
+`# application.properties
+
+# Expose specific endpoints
+management.endpoints.web.exposure.include=health,info,metrics,env,beans
+management.endpoints.web.exposure.exclude=shutdown
+
+# Or expose all (not for production)
+management.endpoints.web.exposure.include=*
+
+# Show full health details
+management.endpoint.health.show-details=always
+
+# Custom info
+info.app.name=My Spring Boot App
+info.app.version=1.0.0
+info.app.author=Niranjan
+
+# Default endpoints available at:
+# GET /actuator/health    → app health status
+# GET /actuator/info      → app info
+# GET /actuator/metrics   → app metrics
+# GET /actuator/env       → environment properties
+# GET /actuator/beans     → all Spring beans
+# GET /actuator/mappings  → all request mappings`}]
+    },
+    {
+      q: "How do you configure logging in Spring Boot?",
+      variants: [
+        {l:"Logging via application.properties", c:
+`# Log levels: TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
+logging.level.root=INFO
+logging.level.com.example=DEBUG
+logging.level.org.springframework.web=INFO
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+
+# Log to file
+logging.file.name=logs/application.log
+logging.file.path=./logs
+logging.logback.rollingpolicy.max-file-size=10MB
+logging.logback.rollingpolicy.max-history=30`},
+        {l:"Using SLF4J Logger in code", c:
+`import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Service
+public class UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+    // Or with Lombok: @Slf4j on class
+
+    public User findById(Long id) {
+        log.debug("Finding user with id: {}", id);
+        try {
+            User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            log.info("User found: {}", user.getEmail());
+            return user;
+        } catch (Exception e) {
+            log.error("Error finding user {}: {}", id, e.getMessage(), e);
+            throw e;
+        }
+    }
+}`}
+      ]
+    }
+  ]
+},
+{
+  title: "Lombok",
+  qs: [
+    {
+      q: "How does Lombok reduce boilerplate code in Spring Boot?",
+      note: "Add lombok dependency and enable annotation processing in IDE.",
+      variants: [{l:"Common Lombok annotations", c:
+`// @Data = @Getter + @Setter + @ToString + @EqualsAndHashCode + @RequiredArgsConstructor
+@Data
+@Entity
+public class User {
+    private Long id;
+    private String name;
+    private String email;
+}
+
+@Getter           // generates only getters
+@Setter           // generates only setters
+@NoArgsConstructor    // generates no-args constructor
+@AllArgsConstructor   // generates all-args constructor
+@RequiredArgsConstructor // generates constructor for final fields
+@ToString
+@EqualsAndHashCode
+@Builder          // generates builder pattern
+@Slf4j            // injects private static final Logger log
+@Entity
+public class Product {
+    private Long id;
+    private String name;
+    private Double price;
+}
+
+// Builder usage
+Product p = Product.builder()
+    .id(1L)
+    .name("Laptop")
+    .price(999.99)
+    .build();
+
+// @Slf4j usage
+@Slf4j
+@Service
+public class ProductService {
+    public void process() {
+        log.info("Processing product");
+        log.debug("Debug message");
+        log.error("Error occurred");
+    }
+}`}]
+    }
+  ]
+},
+{
+  title: "Exception Handling",
+  qs: [
+    {
+      q: "How do you create custom exceptions in Spring Boot?",
+      variants: [{l:"Custom exception classes", c:
+`// 404 Not Found
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+    public ResourceNotFoundException(String resource, Long id) {
+        super(resource + " not found with id: " + id);
+    }
+}
+
+// 400 Bad Request
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+public class BadRequestException extends RuntimeException {
+    public BadRequestException(String message) {
+        super(message);
+    }
+}
+
+// 409 Conflict
+@ResponseStatus(HttpStatus.CONFLICT)
+public class DuplicateResourceException extends RuntimeException {
+    public DuplicateResourceException(String message) {
+        super(message);
+    }
+}
+
+// Standard error response DTO
+public class ErrorResponse {
+    private int status;
+    private String message;
+    private String path;
+    private LocalDateTime timestamp;
+
+    public ErrorResponse(int status, String message, String path) {
+        this.status = status;
+        this.message = message;
+        this.path = path;
+        this.timestamp = LocalDateTime.now();
+    }
+    // getters
+}`}]
+    }
+  ]
+},
+{
+  title: "Testing",
+  qs: [
+    {
+      q: "How do you write unit tests for a Service class using Mockito?",
+      variants: [{l:"Service unit test with Mockito", c:
+`@ExtendWith(MockitoExtension.class)
+public class UserServiceTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @InjectMocks
+    private UserService userService;
+
+    @Test
+    void findById_UserExists_ReturnsUser() {
+        // Arrange
+        User mockUser = new User(1L, "Niranjan", "n@example.com");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+
+        // Act
+        User result = userService.findById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Niranjan", result.getName());
+        verify(userRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void findById_UserNotFound_ThrowsException() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+            () -> userService.findById(99L));
+    }
+
+    @Test
+    void create_ValidUser_SavesAndReturns() {
+        UserRequest request = new UserRequest("Niranjan", "n@example.com", "pass123");
+        when(userRepository.existsByEmail("n@example.com")).thenReturn(false);
+        when(passwordEncoder.encode("pass123")).thenReturn("encoded");
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+        User result = userService.create(request);
+
+        assertEquals("Niranjan", result.getName());
+        verify(userRepository).save(any(User.class));
+    }
+}`}]
+    },
+    {
+      q: "How do you write integration tests for a REST Controller using @WebMvcTest?",
+      variants: [{l:"Controller test with MockMvc", c:
+`@WebMvcTest(UserController.class)
+public class UserControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UserService userService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Test
+    void getAllUsers_Returns200WithList() throws Exception {
+        List<User> users = List.of(new User(1L, "Niranjan", "n@example.com"));
+        when(userService.findAll()).thenReturn(users);
+
+        mockMvc.perform(get("/api/users")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.size()").value(1))
+            .andExpect(jsonPath("$[0].name").value("Niranjan"));
+    }
+
+    @Test
+    void createUser_ValidBody_Returns201() throws Exception {
+        UserRequest req = new UserRequest("Niranjan", "n@example.com", "pass123");
+        User created = new User(1L, "Niranjan", "n@example.com");
+        when(userService.create(any())).thenReturn(created);
+
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.name").value("Niranjan"));
+    }
+
+    @Test
+    void getUserById_NotFound_Returns404() throws Exception {
+        when(userService.findById(99L)).thenThrow(new ResourceNotFoundException("Not found"));
+
+        mockMvc.perform(get("/api/users/99"))
+            .andExpect(status().isNotFound());
+    }
+}`}]
+    },
+    {
+      q: "How do you write a full integration test with @SpringBootTest?",
+      variants: [{l:"@SpringBootTest with TestRestTemplate", c:
+`@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")  // uses application-test.properties
+public class UserIntegrationTest {
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        userRepository.deleteAll();
+    }
+
+    @Test
+    void createAndFetchUser_EndToEnd() {
+        // Create
+        UserRequest req = new UserRequest("Niranjan", "n@example.com", "pass123");
+        ResponseEntity<User> createResp = restTemplate.postForEntity(
+            "/api/users", req, User.class);
+        assertEquals(HttpStatus.CREATED, createResp.getStatusCode());
+        Long userId = createResp.getBody().getId();
+
+        // Fetch
+        ResponseEntity<User> getResp = restTemplate.getForEntity(
+            "/api/users/" + userId, User.class);
+        assertEquals(HttpStatus.OK, getResp.getStatusCode());
+        assertEquals("Niranjan", getResp.getBody().getName());
+    }
+}`}]
+    }
+  ]
+},
+{
+  title: "Project Structure & pom.xml",
+  qs: [
+    {
+      q: "What is the recommended Spring Boot project structure?",
+      variants: [{l:"Standard layered package structure", c:
+`src/
+└── main/
+    ├── java/com/example/myapp/
+    │   ├── MyAppApplication.java        // @SpringBootApplication entry point
+    │   │
+    │   ├── config/                      // @Configuration classes
+    │   │   ├── SecurityConfig.java
+    │   │   └── AppConfig.java
+    │   │
+    │   ├── controller/                  // @RestController – HTTP layer
+    │   │   └── UserController.java
+    │   │
+    │   ├── service/                     // @Service – business logic
+    │   │   ├── UserService.java
+    │   │   └── impl/
+    │   │       └── UserServiceImpl.java
+    │   │
+    │   ├── repository/                  // @Repository – data access
+    │   │   └── UserRepository.java
+    │   │
+    │   ├── entity/                      // @Entity – DB models
+    │   │   └── User.java
+    │   │
+    │   ├── dto/                         // Data Transfer Objects
+    │   │   ├── request/
+    │   │   │   └── UserRequest.java
+    │   │   └── response/
+    │   │       └── UserResponse.java
+    │   │
+    │   ├── exception/                   // Custom exceptions
+    │   │   ├── ResourceNotFoundException.java
+    │   │   └── GlobalExceptionHandler.java
+    │   │
+    │   └── util/                        // Utility/helper classes
+    │       └── JwtUtil.java
+    │
+    └── resources/
+        ├── application.properties
+        ├── application-dev.properties
+        └── application-prod.properties`}]
+    },
+    {
+      q: "What are the most common Spring Boot starter dependencies in pom.xml?",
+      variants: [{l:"Essential starters in pom.xml", c:
+`<dependencies>
+
+    <!-- Core web (REST APIs) -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- JPA + Hibernate -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <!-- MySQL driver -->
+    <dependency>
+        <groupId>com.mysql</groupId>
+        <artifactId>mysql-connector-j</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+
+    <!-- Spring Security -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <!-- Bean Validation -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!-- Actuator -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <!-- Lombok -->
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <optional>true</optional>
+    </dependency>
+
+    <!-- JWT -->
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt</artifactId>
+        <version>0.9.1</version>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+
+    <!-- DevTools (hot reload in dev) -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-devtools</artifactId>
+        <scope>runtime</scope>
+        <optional>true</optional>
+    </dependency>
+
+</dependencies>`}]
+    }
+  ]
+},
+{
+  title: "Caching",
+  qs: [
+    {
+      q: "How do you enable and use caching in Spring Boot?",
+      note: "Add @EnableCaching to your config. Default cache is ConcurrentHashMap (in-memory). For production use Redis.",
+      variants: [
+        {l:"Basic caching with @Cacheable, @CachePut, @CacheEvict", c:
+`// 1. Enable caching
+@SpringBootApplication
+@EnableCaching
+public class MyApplication { ... }
+
+// 2. Use on service methods
+@Service
+public class UserService {
+
+    // Cache result – if same id called again, DB is skipped
+    @Cacheable(value = "users", key = "#id")
+    public User findById(Long id) {
+        return userRepository.findById(id).orElseThrow(...);
+    }
+
+    // Update cache when data changes
+    @CachePut(value = "users", key = "#user.id")
+    public User update(User user) {
+        return userRepository.save(user);
+    }
+
+    // Remove from cache on delete
+    @CacheEvict(value = "users", key = "#id")
+    public void delete(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    // Clear entire cache
+    @CacheEvict(value = "users", allEntries = true)
+    public void clearAllCache() { }
+}`},
+        {l:"Redis cache configuration", c:
+`# application.properties
+spring.cache.type=redis
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+spring.cache.redis.time-to-live=600000  # 10 minutes in ms
+
+# pom.xml dependency
+# spring-boot-starter-data-redis`}
+      ]
+    }
+  ]
+},
+{
+  title: "Scheduling & Async",
+  qs: [
+    {
+      q: "How do you schedule tasks in Spring Boot?",
+      note: "Add @EnableScheduling to your main/config class. Uses cron expressions or fixed delays.",
+      variants: [{l:"@Scheduled task examples", c:
+`@SpringBootApplication
+@EnableScheduling
+public class MyApplication { ... }
+
+@Component
+public class ScheduledTasks {
+
+    private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
+
+    // Run every 5 seconds (fixed delay after last completion)
+    @Scheduled(fixedDelay = 5000)
+    public void taskWithFixedDelay() {
+        log.info("Running every 5 seconds after last finish");
+    }
+
+    // Run every 5 seconds (fixed rate regardless of execution time)
+    @Scheduled(fixedRate = 5000)
+    public void taskWithFixedRate() {
+        log.info("Running every 5 seconds");
+    }
+
+    // Cron expression: second minute hour day month weekday
+    @Scheduled(cron = "0 0 9 * * MON-FRI")  // 9 AM weekdays
+    public void sendMorningReport() {
+        log.info("Sending morning report");
+    }
+
+    @Scheduled(cron = "0 0 0 1 * ?")  // midnight on 1st of every month
+    public void monthlyCleanup() {
+        log.info("Monthly cleanup");
+    }
+}`}]
+    },
+    {
+      q: "How do you run methods asynchronously using @Async?",
+      note: "Add @EnableAsync to your config. @Async methods must be in a different bean (not calling itself).",
+      variants: [{l:"@Async usage", c:
+`@SpringBootApplication
+@EnableAsync
+public class MyApplication { ... }
+
+@Service
+public class EmailService {
+
+    // Runs in a separate thread – caller does not wait
+    @Async
+    public void sendWelcomeEmail(String email) {
+        // simulate slow operation
+        Thread.sleep(3000);
+        System.out.println("Email sent to: " + email);
+    }
+
+    // @Async with CompletableFuture to get the result later
+    @Async
+    public CompletableFuture<String> processData(Long id) {
+        String result = heavyComputation(id);
+        return CompletableFuture.completedFuture(result);
+    }
+}
+
+// Custom thread pool configuration
+@Configuration
+@EnableAsync
+public class AsyncConfig {
+    @Bean(name = "taskExecutor")
+    public Executor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(25);
+        executor.setThreadNamePrefix("Async-");
+        executor.initialize();
+        return executor;
+    }
+}`}]
+    }
+  ]
+}
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── CUSTOM Q's (localStorage) ──────────────────────────────────────────────────
+var CUSTOM_KEY = 'springboot_cheat_custom_qs';
+function loadCustom() { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]'); } catch(e){ return []; } }
+function saveCustom(a) { try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(a)); } catch(e){} }
+
+function getSections() {
+  var c = loadCustom();
+  if (c.length === 0) return SECTIONS;
+  return [{ title: '\u2B50 My Custom Questions', qs: c, isCustom: true }].concat(SECTIONS);
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function render(filter) {
+  var root = document.getElementById('root');
+  var noR  = document.getElementById('noResults');
+  filter = (filter||'').toLowerCase().trim();
+  var html = '', total = 0;
+  var all = getSections();
+
+  for (var si = 0; si < all.length; si++) {
+    var sec = all[si], isC = !!sec.isCustom, items = [];
+    for (var qi = 0; qi < sec.qs.length; qi++) {
+      var q = sec.qs[qi];
+      if (!filter) { items.push({q:q,idx:qi}); continue; }
+      var hit = q.q.toLowerCase().indexOf(filter)>=0 || ((q.note||'').toLowerCase().indexOf(filter)>=0);
+      if (!hit) for (var vi=0;vi<q.variants.length;vi++) {
+        if (q.variants[vi].l.toLowerCase().indexOf(filter)>=0 || q.variants[vi].c.toLowerCase().indexOf(filter)>=0){ hit=true; break; }
+      }
+      if (hit) items.push({q:q,idx:qi});
+    }
+    if (!items.length) continue;
+    total += items.length;
+    html += '<div class="section-wrap"><div class="section-title">'+esc(sec.title)+'</div>';
+    for (var ii=0;ii<items.length;ii++) {
+      var item=items[ii].q;
+      var noteHtml = item.note ? '<div class="note">&#128204; '+esc(item.note)+'</div>' : '';
+      var vHtml = '';
+      for (var vv=0;vv<item.variants.length;vv++) {
+        var v=item.variants[vv];
+        vHtml += '<div class="variant"><div class="vlabel">'+esc(v.l)+'</div><pre>'+esc(v.c)+'</pre></div>';
+      }
+      html += '<div class="q-card'+(isC?' custom-card':'')+'">'+
+              '<div class="q-trigger"><div class="q-text">'+esc(item.q)+'</div><div class="chevron">&#9660;</div></div>'+
+              '<div class="q-body">'+noteHtml+vHtml+'</div></div>';
+    }
+    html += '</div>';
+  }
+  root.innerHTML = html;
+  noR.style.display = total===0 ? 'block' : 'none';
+}
+
+// ── ACCORDION ──────────────────────────────────────────────────────────────────
+document.getElementById('root').addEventListener('click', function(e) {
+  var el = e.target;
+  while (el && el !== this) {
+    if (el.classList.contains('q-trigger')) {
+      var card = el.closest ? el.closest('.q-card') : el.parentElement;
+      if (card) card.classList.toggle('open');
+      return;
+    }
+    el = el.parentElement;
+  }
+});
+
+document.getElementById('searchBox').addEventListener('input', function(){ render(this.value); });
+
+// ── MODAL ──────────────────────────────────────────────────────────────────────
+var variantCount = 1;
+
+function openModal() {
+  variantCount = 1;
+  document.getElementById('qTitle').value = '';
+  document.getElementById('qNote').value = '';
+  document.getElementById('variantsWrap').innerHTML = makeVariantBlock(0);
+  document.getElementById('addModal').style.display = 'flex';
+  document.getElementById('qTitle').focus();
+}
+function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+function makeVariantBlock(idx) {
+  return '<div class="variant-block" id="vb'+idx+'">'+
+    '<div class="vb-header"><span class="vb-label">Answer / Variant '+(idx+1)+'</span>'+
+    (idx>0 ? '<button type="button" class="rm-variant" onclick="removeVariant('+idx+')">&#10005; Remove</button>' : '')+
+    '</div>'+
+    '<input type="text" class="modal-input" id="vLabel'+idx+'" placeholder="Label (e.g. Using @Scheduled)" />'+
+    '<textarea class="modal-code" id="vCode'+idx+'" rows="7" placeholder="Paste your code here..."></textarea>'+
+    '</div>';
+}
+function addVariant() {
+  document.getElementById('variantsWrap').insertAdjacentHTML('beforeend', makeVariantBlock(variantCount));
+  variantCount++;
+}
+function removeVariant(idx) { var e=document.getElementById('vb'+idx); if(e) e.remove(); }
+
+function saveQuestion() {
+  var title = document.getElementById('qTitle').value.trim();
+  var note  = document.getElementById('qNote').value.trim();
+  if (!title) { alert('Please enter a question title.'); return; }
+  var variants = [];
+  for (var i=0;i<variantCount;i++) {
+    var lEl=document.getElementById('vLabel'+i), cEl=document.getElementById('vCode'+i);
+    if (!lEl||!cEl) continue;
+    var l=lEl.value.trim(), c=cEl.value.trim();
+    if (!l&&!c) continue;
+    variants.push({l: l||'Solution', c: c});
+  }
+  if (!variants.length) { alert('Please add at least one answer/variant.'); return; }
+  var newQ = {q:title, variants:variants};
+  if (note) newQ.note = note;
+  var c = loadCustom(); c.push(newQ); saveCustom(c);
+  closeModal();
+  render(document.getElementById('searchBox').value);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('addModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+render('');
+</script>
+</body>
+</html>

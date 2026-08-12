@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java DSA Cheat Sheet</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f172a; color: #e2e8f0; min-height: 100vh; padding-bottom: 80px;
+}
+header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+  padding: 22px 16px 18px; text-align: center; border-bottom: 2px solid #f97316;
+}
+header h1 { font-size: 1.4rem; color: #f97316; font-weight: 800; letter-spacing: -0.5px; }
+header p  { font-size: 0.82rem; color: #94a3b8; margin-top: 5px; }
+.sticky-bar {
+  position: sticky; top: 0; z-index: 200; background: #1e293b;
+  border-bottom: 1px solid #334155; padding: 10px 12px;
+}
+.sticky-bar input {
+  width: 100%; padding: 9px 14px; border-radius: 8px; border: 1px solid #475569;
+  background: #0f172a; color: #e2e8f0; font-size: 0.92rem; outline: none;
+}
+.sticky-bar input:focus { border-color: #f97316; }
+.sticky-bar input::placeholder { color: #64748b; }
+.section-wrap { margin: 14px 10px 4px; }
+.section-title {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.6px;
+  color: #f97316; font-weight: 800; padding-bottom: 7px;
+  border-bottom: 1px solid #1e3a5f; margin-bottom: 8px;
+}
+.q-card {
+  background: #1e293b; border: 1px solid #2d3f55;
+  border-radius: 10px; margin-bottom: 7px; overflow: hidden;
+}
+.q-card.open { border-color: #f97316; }
+.q-trigger {
+  display: flex; align-items: center; gap: 10px; padding: 13px 14px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.q-trigger:active { background: #253448; }
+.q-text { flex: 1; font-size: 0.88rem; font-weight: 600; color: #cbd5e1; line-height: 1.35; }
+.q-card.open .q-text { color: #fb923c; }
+.chevron {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: #334155; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #94a3b8; transition: transform 0.22s ease, background 0.2s;
+}
+.q-card.open .chevron { transform: rotate(180deg); background: #f97316; color: #fff; }
+.q-body { display: none; border-top: 1px solid #2d3f55; }
+.q-card.open .q-body { display: block; }
+.note {
+  margin: 10px 14px 0; background: #0f172a; border-left: 3px solid #f97316;
+  border-radius: 0 6px 6px 0; padding: 8px 11px; font-size: 0.78rem;
+  color: #94a3b8; line-height: 1.55;
+}
+.variant { padding: 10px 14px 12px; border-bottom: 1px solid #0f172a; }
+.variant:last-child { border-bottom: none; }
+.vlabel {
+  font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: #f97316; margin-bottom: 7px;
+}
+pre {
+  background: #070f1a; border: 1px solid #1e3a5f; border-radius: 7px;
+  padding: 12px; overflow-x: auto; font-family: 'Courier New', monospace;
+  font-size: 0.74rem; line-height: 1.65; color: #a5f3fc; white-space: pre;
+}
+.no-results { text-align: center; padding: 50px 20px; color: #475569; font-size: 0.9rem; }
+/* FAB */
+#fabBtn {
+  position: fixed; bottom: 24px; right: 20px; width: 54px; height: 54px;
+  border-radius: 50%; background: #f97316; color: #fff; font-size: 2rem;
+  font-weight: 300; border: none; cursor: pointer;
+  box-shadow: 0 4px 18px rgba(249,115,22,0.5); z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1; transition: transform 0.15s, box-shadow 0.15s;
+}
+#fabBtn:active { transform: scale(0.92); }
+/* Modal Backdrop */
+#addModal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.78);
+  z-index: 1000; display: flex; align-items: flex-end; justify-content: center;
+}
+@media (min-width: 600px) { #addModal { align-items: center; padding: 20px; } }
+/* Modal Box */
+#modalBox {
+  background: #1e293b; border-radius: 16px 16px 0 0; width: 100%;
+  max-width: 620px; max-height: 92vh; display: flex; flex-direction: column;
+  overflow: hidden; border: 1px solid #f97316;
+}
+@media (min-width: 600px) { #modalBox { border-radius: 16px; } }
+#modalHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid #334155; flex-shrink: 0;
+}
+#modalTitle { font-size: 1rem; font-weight: 700; color: #f97316; }
+#modalClose {
+  background: #334155; border: none; color: #94a3b8; width: 28px; height: 28px;
+  border-radius: 50%; cursor: pointer; font-size: 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+}
+#modalBody { padding: 16px 18px; overflow-y: auto; flex: 1; }
+.modal-label {
+  display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: #f97316; margin-bottom: 6px; margin-top: 14px;
+}
+.modal-label:first-child { margin-top: 0; }
+.modal-input {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #334155;
+  background: #0f172a; color: #e2e8f0; font-size: 0.88rem; outline: none; margin-bottom: 2px;
+}
+.modal-input:focus { border-color: #f97316; }
+.modal-code {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #334155;
+  background: #070f1a; color: #a5f3fc; font-family: 'Courier New', monospace;
+  font-size: 0.78rem; line-height: 1.6; outline: none; resize: vertical; margin-bottom: 2px;
+}
+.modal-code:focus { border-color: #f97316; }
+.variant-block {
+  background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+  padding: 12px; margin-bottom: 10px;
+}
+.vb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.vb-label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; }
+.rm-variant {
+  background: #1e293b; border: 1px solid #475569; color: #ef4444;
+  border-radius: 5px; padding: 3px 8px; font-size: 0.7rem; cursor: pointer;
+}
+#addVariantBtn {
+  width: 100%; padding: 9px; margin-top: 4px; background: transparent;
+  border: 1px dashed #475569; color: #94a3b8; border-radius: 7px;
+  font-size: 0.82rem; cursor: pointer; transition: border-color 0.2s, color 0.2s;
+}
+#addVariantBtn:hover, #addVariantBtn:active { border-color: #f97316; color: #f97316; }
+#modalFooter {
+  display: flex; gap: 10px; padding: 14px 18px;
+  border-top: 1px solid #334155; flex-shrink: 0;
+}
+#cancelBtn {
+  flex: 1; padding: 11px; border-radius: 8px; border: 1px solid #475569;
+  background: transparent; color: #94a3b8; font-size: 0.9rem; cursor: pointer;
+}
+#saveBtn {
+  flex: 2; padding: 11px; border-radius: 8px; border: none;
+  background: #f97316; color: #fff; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+}
+#saveBtn:active { background: #ea6c10; }
+/* Custom card */
+.custom-card { border-color: #854d0e !important; }
+.custom-card.open { border-color: #f97316 !important; }
+.inline-add-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; border: 1px dashed #334155;
+  color: #64748b; border-radius: 7px; padding: 7px 14px;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; cursor: pointer; width: 100%;
+  justify-content: center; transition: all 0.2s; margin-top: 2px;
+}
+.inline-add-btn:hover, .inline-add-btn:active {
+  border-color: #f97316; color: #f97316; background: #1a0f00;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#9749; Java DSA &amp; Collections</h1>
+  <p>Tap a question to see the code &bull; Tap <strong>+</strong> to add your own</p>
+</header>
+
+<div class="sticky-bar">
+  <input type="text" id="searchBox" placeholder="Search (e.g. sort, palindrome, stream...)" />
+</div>
+
+<div id="root"></div>
+<div id="noResults" class="no-results" style="display:none">No matches found.</div>
+
+<!-- FAB -->
+<button id="fabBtn" onclick="openModal()" title="Add new question">+</button>
+
+<!-- Modal -->
+<div id="addModal" style="display:none">
+  <div id="modalBox">
+    <div id="modalHeader">
+      <span id="modalTitle">Add New Question</span>
+      <button id="modalClose" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div id="modalBody">
+      <label class="modal-label">Question Title *</label>
+      <input type="text" class="modal-input" id="qTitle" placeholder="e.g. How to reverse a LinkedList?" />
+      <label class="modal-label">Note / Tip (optional)</label>
+      <input type="text" class="modal-input" id="qNote" placeholder="e.g. Useful for interviews..." />
+      <label class="modal-label" style="margin-top:16px">Answers / Variants</label>
+      <div id="variantsWrap"></div>
+      <button id="addVariantBtn" type="button" onclick="addVariant()">+ Add Another Variant</button>
+    </div>
+    <div id="modalFooter">
+      <button id="cancelBtn" onclick="closeModal()">Cancel</button>
+      <button id="saveBtn" onclick="saveQuestion()">Save Question</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var SECTIONS = [
+{
+  title: "Arrays to List Conversion",
+  qs: [
+    {
+      q: "Convert an array of Strings into a List",
+      variants: [{ l: "Arrays.asList()", c: 'String[] array = {"apple", "banana", "cherry"};\nList<String> list = Arrays.asList(array);\nSystem.out.println(list);' }]
+    },
+    {
+      q: "Convert a List of Strings into an array",
+      variants: [{ l: "list.toArray()", c: 'List<String> list = Arrays.asList("apple", "banana", "cherry");\nString[] array = list.toArray(new String[0]);\nSystem.out.println(Arrays.toString(array));' }]
+    },
+    {
+      q: "Convert an array of characters into a List",
+      variants: [
+        { l: "Using for-each loop", c: "char[] charArray = {'a', 'b', 'c', 'd'};\nList<Character> charList = new ArrayList<>();\nfor (char ch : charArray) {\n    charList.add(ch);\n}\nSystem.out.println(charList);" },
+        { l: "Arrays.asList() with Character[]", c: "Character[] charArray = {'a', 'b', 'c', 'd'};\nList<Character> characterList = Arrays.asList(charArray);\nSystem.out.println(characterList);" },
+        { l: "Using Streams (new String().chars())", c: "char[] charArray = {'a', 'b', 'c', 'd'};\nList<Character> charList =\n    new String(charArray)\n        .chars()\n        .mapToObj(c -> (char) c)\n        .collect(Collectors.toList());\nSystem.out.println(charList);" },
+        { l: "Using IntStream.range()", c: "char[] charArray = {'x', 'y', 'z'};\nList<Character> charList =\n    IntStream.range(0, charArray.length)\n             .mapToObj(i -> charArray[i])\n             .collect(Collectors.toList());\nSystem.out.println(charList); // [x, y, z]" }
+      ]
+    },
+    {
+      q: "Convert a List of characters into an array",
+      variants: [{ l: "list.toArray(new Character[0])", c: "List<Character> charList = new ArrayList<>(Arrays.asList('a', 'b', 'c', 'd'));\nCharacter[] charArray = charList.toArray(new Character[0]);\nSystem.out.println(Arrays.toString(charArray));" }]
+    },
+    {
+      q: "Convert an array of integers to a List",
+      variants: [
+        { l: "Arrays.stream().boxed()", c: "int[] num = {1, 2, 9292, 277, 88};\nList<Integer> numList = Arrays.stream(num)\n    .boxed().collect(Collectors.toList());" },
+        { l: "Arrays.asList() with Integer[]", c: "Integer[] num = {1, 2, 9292, 277, 88};\nList<Integer> intList = Arrays.asList(num);" },
+        { l: "Direct Arrays.asList()", c: "List<Integer> intList = Arrays.asList(1, 4, 3, 3, 87, 5, 4, 9);" }
+      ]
+    },
+    {
+      q: "Convert a List of integers to an array",
+      variants: [{ l: "numList.toArray(new Integer[0])", c: "List<Integer> numList = new ArrayList<>(Arrays.asList(1, 4, 3, 3, 87, 5, 4, 9));\nInteger[] inArray = numList.toArray(new Integer[0]);\nSystem.out.println(Arrays.toString(inArray));" }]
+    }
+  ]
+},
+{
+  title: "List Aggregation (Stream API)",
+  qs: [
+    {
+      q: "Find average value from a List of integers",
+      variants: [{ l: "mapToInt().average()", c: "List<Integer> numList = new ArrayList<>(Arrays.asList(1, 4, 3, 3, 87, 5, 4, 9));\ndouble averageValue = numList.stream()\n    .mapToInt(i -> i.intValue()).average().getAsDouble();\nSystem.out.println(averageValue);" }]
+    },
+    {
+      q: "Find the sum of all values from a List of integers",
+      variants: [{ l: "mapToInt().sum()", c: "int sum = numList.stream().mapToInt(i -> i.intValue()).sum();\nSystem.out.println(sum);" }]
+    },
+    {
+      q: "Find the minimum value from a List of integers",
+      variants: [{ l: "mapToInt().min()", c: "int minimum = numList.stream().mapToInt(i -> i.intValue()).min().getAsInt();\nSystem.out.println(minimum);" }]
+    },
+    {
+      q: "Find the maximum value from a List of integers",
+      variants: [{ l: "mapToInt().max()", c: "int maximum = numList.stream().mapToInt(i -> i.intValue()).max().getAsInt();\nSystem.out.println(maximum);" }]
+    },
+    {
+      q: "Find unique values from a List of integers",
+      variants: [{ l: "stream().distinct()", c: "List<Integer> uniqueValues = numList.stream()\n    .distinct().collect(Collectors.toList());\nSystem.out.println(uniqueValues);" }]
+    },
+    {
+      q: "Merge two Lists of integers using flatMap()",
+      variants: [{ l: "flatMap approach", c: "List<Integer> list1 = new ArrayList<>(Arrays.asList(1, 4, 3, 87, 5, 9));\nList<Integer> list2 = new ArrayList<>(Arrays.asList(2, 6, 34, 60));\n\nList<List<Integer>> finalList = new ArrayList<>();\nfinalList.add(list1);\nfinalList.add(list2);\n\nList<Integer> finalMergedList = finalList.stream()\n    .flatMap(list -> list.stream())\n    .collect(Collectors.toList());\nSystem.out.println(finalMergedList);" }]
+    }
+  ]
+},
+{
+  title: "Sorting",
+  qs: [
+    {
+      q: "Sort an array of Strings manually (no built-in sort)",
+      variants: [{ l: "Bubble sort on first character", c: 'String[] str = {"abc", "msd", "lnw"};\nString tmpstr = null;\nint l = str.length;\nfor (int i = 0; i < l; i++) {\n    for (int j = i+1; j < l; j++) {\n        if (str[i].charAt(0) > str[j].charAt(0)) {\n            tmpstr = str[i];\n            str[i] = str[j];\n            str[j] = tmpstr;\n        }\n    }\n}\nfor (int i = 0; i < str.length; i++) {\n    System.out.println(str[i]);\n}' }]
+    },
+    {
+      q: "Sort array of integers in ascending order (manual Bubble Sort)",
+      variants: [{ l: "Bubble Sort", c: "int[] numbers = {45, 29, 3, 5, 7, 10};\nint temp;\nfor (int i = 0; i < numbers.length; i++) {\n    for (int j = i+1; j < numbers.length; j++) {\n        if (numbers[i] > numbers[j]) {\n            temp = numbers[i];\n            numbers[i] = numbers[j];\n            numbers[j] = temp;\n        }\n    }\n}\nSystem.out.println(Arrays.toString(numbers));\n// Output: [3, 5, 7, 10, 29, 45]" }]
+    },
+    {
+      q: "Sort String array – ascending and descending (Stream API)",
+      variants: [
+        { l: "Stream sorted() both orders", c: 'String[] strs = {"mohit", "raj", "ashoka", "niranjan"};\nList<String> ascSortedList = Arrays.stream(strs)\n    .sorted().collect(Collectors.toList());\nList<String> dscSortedList = Arrays.stream(strs)\n    .sorted(Comparator.reverseOrder()).collect(Collectors.toList());\nSystem.out.println(ascSortedList);\nSystem.out.println(dscSortedList);' },
+        { l: "Using lambda compareTo", c: "// Ascending\nArrays.stream(strs).sorted((s1,s2) -> s1.compareTo(s2)).forEach(System.out::println);\n// Descending\nArrays.stream(strs).sorted((s1,s2) -> s2.compareTo(s1)).forEach(System.out::println);" },
+        { l: "Arrays.sort()", c: "// Ascending\nArrays.sort(strs);\nSystem.out.println(Arrays.toString(strs));\n\n// Descending\nArrays.sort(strs, Comparator.reverseOrder());\nSystem.out.println(Arrays.toString(strs));" }
+      ]
+    },
+    {
+      q: "Sort String array by length – ascending and descending",
+      variants: [
+        { l: "Stream API", c: 'String[] strList = {"mohit", "raj", "ashoka", "niranjan"};\n// Ascending by length\nArrays.stream(strList)\n    .sorted((s1, s2) -> s1.length() - s2.length())\n    .forEach(System.out::println);\n// Descending by length\nArrays.stream(strList)\n    .sorted((s1, s2) -> s2.length() - s1.length())\n    .forEach(System.out::println);' },
+        { l: "Arrays.sort with Comparator", c: "// Ascending\nArrays.sort(strs, (s1, s2) -> s1.length() - s2.length());\nSystem.out.println(Arrays.toString(strs));\n// Descending\nArrays.sort(strs, (s1, s2) -> s2.length() - s1.length());\nSystem.out.println(Arrays.toString(strs));" }
+      ]
+    },
+    {
+      q: "Sort array of integers – ascending and descending",
+      variants: [
+        { l: "Ascending – Arrays.sort()", c: "int[] num = {12, 90, 16, 47, 39};\nArrays.sort(num);\nSystem.out.println(Arrays.toString(num));" },
+        { l: "Descending – Integer[] + Comparator.reverseOrder()", c: "Integer[] num = {12, 90, 16, 47, 39};\nArrays.sort(num, Comparator.reverseOrder());\nSystem.out.println(Arrays.toString(num));" },
+        { l: "Descending – Collections.sort on List", c: "List<Integer> numList = Arrays.asList(12, 90, 16, 47, 39);\nCollections.sort(numList, (n1, n2) -> n2 - n1);\nnumList.forEach(System.out::println);" }
+      ]
+    }
+  ]
+},
+{
+  title: "String and Character Operations",
+  qs: [
+    {
+      q: "Count occurrences of each character in a String",
+      variants: [{ l: "Using HashMap", c: 'String str = "abcjaskjaskja";\nchar[] chars = str.toCharArray();\nHashMap<Character, Integer> charMap = new HashMap<>();\nfor (Character c : chars) {\n    if (charMap.containsKey(c)) {\n        charMap.put(c, charMap.get(c) + 1);\n    } else {\n        charMap.put(c, 1);\n    }\n}\nfor (Map.Entry<Character, Integer> m : charMap.entrySet()) {\n    System.out.println(m.getKey() + " : " + m.getValue());\n}' }]
+    },
+    {
+      q: "Reverse an array of characters",
+      variants: [
+        { l: "Using a second array", c: "char[] arr = {'h','e','l','l','o'};\nchar[] revarr = new char[arr.length];\nint j = 0;\nfor (int i = arr.length-1; i >= 0; i--) {\n    revarr[j] = arr[i];\n    j = j + 1;\n}" },
+        { l: "Using Stream API", c: "char[] charArray = {'a', 'b', 'c', 'd', 'e'};\nList<Character> chrList = IntStream.range(0, charArray.length)\n    .mapToObj(i -> charArray[i]).collect(Collectors.toList());\n\nList<Character> revChrList = chrList.stream()\n    .sorted(Comparator.reverseOrder()).collect(Collectors.toList());\n\nchar[] revCharArray = revChrList.stream()\n    .map(String::valueOf)\n    .collect(Collectors.joining())\n    .toCharArray();\nSystem.out.println(revChrList);" }
+      ]
+    },
+    {
+      q: "Reverse an array of characters in-place (no second array)",
+      variants: [{ l: "Two-pointer swap", c: "char[] arr = {'h', 'e', 'l', 'l', 'o'};\nfloat l = arr.length;\nint midIndex;\nif (l % 2 == 0) {\n    midIndex = Math.round(l / 2);\n} else {\n    midIndex = Math.round(l / 2) - 1;\n}\nint j = arr.length - 1;\nfor (int i = 0; i < arr.length; i++) {\n    if (i != midIndex) {\n        char temp = arr[i];\n        arr[i] = arr[j];\n        arr[j] = temp;\n        j = j - 1;\n    } else {\n        break;\n    }\n}\nSystem.out.println(arr);" }]
+    },
+    {
+      q: "Find the maximum occurring character in a String",
+      variants: [{ l: "HashMap + Collections.max()", c: 'String str = "niranjan";\nchar[] charArray = str.toCharArray();\nHashMap<Character, Integer> charMap = new HashMap<>();\n\nfor (int i = 0; i < charArray.length; i++) {\n    if (charMap.containsKey(charArray[i])) {\n        charMap.put(charArray[i], charMap.get(charArray[i]) + 1);\n    } else {\n        charMap.put(charArray[i], 1);\n    }\n}\nInteger maxCount = Collections.max(charMap.values());\nfor (Map.Entry<Character, Integer> m : charMap.entrySet()) {\n    if (maxCount == m.getValue()) {\n        System.out.println("max char: " + m.getKey() + " -> " + m.getValue());\n    }\n}' }]
+    },
+    {
+      q: "Remove all duplicates from a given String",
+      variants: [
+        { l: "Using HashSet", c: 'String str = "niranjan";\nchar[] charArray = str.toCharArray();\nSet<Character> charSet = new HashSet<>();\nfor (Character c : charArray) { charSet.add(c); }\nString mstr = "";\nIterator<Character> i = charSet.iterator();\nwhile (i.hasNext()) { mstr = mstr + i.next(); }\nSystem.out.println(mstr);' },
+        { l: "Using Stream API", c: 'String str = "niranjan";\nchar[] chars = str.toCharArray();\nString uniqStr = IntStream.range(0, chars.length)\n    .mapToObj(i -> chars[i])\n    .distinct()\n    .map(String::valueOf)\n    .collect(Collectors.joining());\nSystem.out.println(uniqStr);' }
+      ]
+    },
+    {
+      q: "Count occurrences of a particular character in a String",
+      variants: [
+        { l: "Using Spring StringUtils", c: '// import org.springframework.util.StringUtils;\nString str = "niranjan";\nint occurrences = StringUtils.countOccurrencesOf(str, "n");\nSystem.out.println(occurrences);' },
+        { l: "Using Apache Commons Lang", c: '// import org.apache.commons.lang3.StringUtils;\nString str = "niranjan";\nint occurrences = StringUtils.countMatches(str, "n");\nSystem.out.println(occurrences);' },
+        { l: "Using HashMap", c: 'String str = "niranjan";\nchar[] chars = str.toCharArray();\nMap<Character, Integer> charMap = new HashMap<>();\nfor (Character c : chars) {\n    if (charMap.containsKey(c)) charMap.put(c, charMap.get(c)+1);\n    else charMap.put(c, 1);\n}\nSystem.out.println("count of n: " + charMap.get(\'n\'));' }
+      ]
+    },
+    {
+      q: "Remove duplicates from integer array",
+      variants: [
+        { l: "Without Collection (track in result array)", c: "int[] arr = {1, 2, 3, 4, 2, 4, 3};\nint[] result = new int[arr.length];\nfor (int i = 0; i < arr.length; i++) {\n    int count = 0;\n    for (int j = 0; j < result.length; j++) {\n        if (arr[i] == result[j]) { count = count + 1; }\n    }\n    if (count == 0) { result[i] = arr[i]; }\n}\nfor (int a : result) { if (a > 0) System.out.println(a); }" },
+        { l: "Using HashSet", c: "int[] arr = {1, 2, 3, 4, 2, 4, 3};\nHashSet<Integer> hs = new HashSet<>();\nfor (Integer s : arr) { hs.add(s); }\nSystem.out.println(hs);" },
+        { l: "Using Stream distinct()", c: "int[] arr = {1, 2, 3, 4, 2, 4, 3};\nint[] unqNumbers = Arrays.stream(arr).distinct().toArray();\nfor (Integer i : unqNumbers) { System.out.print(i + \" \"); }" },
+        { l: "In-place (mark duplicates as 0)", c: "int[] arr = {1, 2, 3, 4, 2, 4, 3};\nfor (int i = 0; i < arr.length; i++) {\n    for (int j = i+1; j < arr.length; j++) {\n        if (arr[i] == arr[j]) { arr[j] = 0; }\n    }\n}\nfor (int a : arr) { if (a > 0) System.out.println(a); }" }
+      ]
+    },
+    {
+      q: "Print duplicate characters from a given String",
+      variants: [
+        { l: "Using core Java (nested loop)", c: 'String str = "niranjan";\nchar[] charArr = str.toCharArray();\nfor (int i = 0; i < charArr.length; i++) {\n    int count = 0;\n    for (int j = i+1; j < charArr.length; j++) {\n        if (charArr[i] == charArr[j]) {\n            count = count + 1;\n            charArr[j] = \'\\u0000\';\n        }\n    }\n    if (count > 0 && charArr[i] != \'\\u0000\') {\n        System.out.println("duplicate char: " + charArr[i]);\n    }\n}' },
+        { l: "Using HashMap", c: 'String str = "niranjan";\nchar[] charArr = str.toCharArray();\nHashMap<Character, Integer> charMap = new HashMap<>();\nfor (Character c : charArr) {\n    if (charMap.containsKey(c)) charMap.put(c, charMap.get(c)+1);\n    else charMap.put(c, 1);\n}\nfor (Map.Entry<Character, Integer> cm : charMap.entrySet()) {\n    if (cm.getValue() > 1) System.out.println("duplicate: " + cm.getKey());\n}' }
+      ]
+    },
+    {
+      q: "Find duplicate words in a sentence",
+      variants: [{ l: "HashMap with split", c: 'String str = "java and java script are the java trending languages";\nString[] strArr = str.split("\\\\s+");\nMap<String, Integer> strMap = new HashMap<>();\nfor (String s : strArr) {\n    if (strMap.containsKey(s)) strMap.put(s, strMap.get(s)+1);\n    else strMap.put(s, 1);\n}\nSystem.out.println("duplicate words: ");\nfor (Map.Entry<String, Integer> m : strMap.entrySet()) {\n    if (m.getValue() > 1) System.out.println(m.getKey());\n}' }]
+    },
+    {
+      q: "Remove characters from String1 that are present in String2",
+      variants: [
+        { l: "Using replace()", c: 'String str1 = "India is great";\nString str2 = "in";\nchar[] charArr2 = str2.toCharArray();\nfor (int i = 0; i < charArr2.length; i++) {\n    if (str1.toLowerCase().contains(\n            Character.toString(charArr2[i]).toLowerCase())) {\n        str1 = str1.toLowerCase()\n               .replace(Character.toString(charArr2[i]).toLowerCase(), "");\n    }\n}\nSystem.out.println(str1);' },
+        { l: "Apache Commons (case-insensitive)", c: '// import org.apache.commons.lang3.StringUtils;\nString str1 = "Inida is Great";\nString str2 = "in";\nchar[] arr = str2.toCharArray();\nfor (Character c : arr) {\n    if (StringUtils.containsIgnoreCase(str1, Character.toString(c))) {\n        str1 = str1.replaceAll("(?i)" + Character.toString(c), "");\n    }\n}\nSystem.out.println(str1);' }
+      ]
+    },
+    {
+      q: "Convert a String to char array and char array back to String",
+      variants: [{ l: "toCharArray() and String.valueOf()", c: 'String str1 = "India is great";\nchar[] chars = str1.toCharArray();\nfor (char c : chars) { System.out.println(c); }\n\n// char array back to String\nString s = String.valueOf(chars);\nSystem.out.println(s);' }]
+    },
+    {
+      q: "Check if two Strings are rotations of each other",
+      variants: [{ l: "Concatenate and use contains()", c: 'String str1 = "India is great";\nString str2 = "great India is";\nif (str1.length() == str2.length()) {\n    String concatenatedStr = str1 + str1;\n    if (concatenatedStr.contains(str2)) {\n        System.out.println("str2 is rotation of str1");\n    } else {\n        System.out.println("str2 is not rotation of str1");\n    }\n} else {\n    System.out.println("not rotations of each other!!");\n}' }]
+    },
+    {
+      q: "Reverse a given String",
+      variants: [
+        { l: "Using StringBuffer", c: 'String str = "madak";\nStringBuffer sb = new StringBuffer(str);\nString reversedStr = sb.reverse().toString();\nSystem.out.println(reversedStr);' },
+        { l: "Using StringBuilder (char loop)", c: 'String str = "madak";\nchar[] chars = str.toCharArray();\nStringBuilder sb = new StringBuilder();\nfor (int i = chars.length - 1; i >= 0; i--) {\n    sb.append(chars[i]);\n}\nSystem.out.println(sb.toString());' },
+        { l: "Reverse words in a sentence (StringJoiner)", c: 'String str = "India is great";\nString[] strArr = str.split(" ");\nStringJoiner sj = new StringJoiner(" ");\nfor (int i = strArr.length - 1; i >= 0; i--) {\n    sj.add(strArr[i]);\n}\nSystem.out.println(sj.toString());' },
+        { l: "Reverse words (Collections.reverse)", c: 'String str = "India is great";\nString[] strs = str.split("\\\\s+");\nCollections.reverse(Arrays.asList(strs));\nStringJoiner sj = new StringJoiner(" ");\nfor (String s : strs) { sj.add(s); }\nSystem.out.println(sj.toString().trim());' }
+      ]
+    },
+    {
+      q: "Check if two Strings are Anagrams",
+      variants: [
+        { l: "Sort both char arrays and compare", c: 'String str1 = "army";\nString str2 = "mary";\nchar[] arr1 = str1.toLowerCase().toCharArray();\nchar[] arr2 = str2.toLowerCase().toCharArray();\nArrays.sort(arr1);\nArrays.sort(arr2);\nif (arr1.length == arr2.length) {\n    if (Arrays.equals(arr1, arr2)) {\n        System.out.println("yes they are anagram");\n    } else {\n        System.out.println("No they are not anagram");\n    }\n} else {\n    System.out.println("No they are not anagram");\n}' },
+        { l: "Using contains() in loop", c: 'String str1 = "cat";\nString str2 = "act";\nstr1 = str1.toLowerCase();\nchar[] chars = str2.toLowerCase().toCharArray();\nboolean b = true;\nif (str1.length() == str2.length()) {\n    for (Character c : chars) {\n        if (!str1.contains(Character.toString(c))) { b = false; }\n    }\n    System.out.println(b ? "yes anagram!!" : "not anagram!!");\n} else {\n    System.out.println("not anagram!!");\n}' }
+      ]
+    },
+    {
+      q: "Check if a String is a Palindrome",
+      variants: [{ l: "StringBuffer.reverse()", c: 'String str = "radar";\nStringBuffer sbf = new StringBuffer(str);\nString reversedStr = sbf.reverse().toString();\nif (reversedStr.equals(str)) {\n    System.out.println("The string is palindrome!");\n}' }]
+    },
+    {
+      q: "Print first non-repeating character from a String",
+      note: "LinkedHashMap preserves insertion order – key for this problem.",
+      variants: [{ l: "LinkedHashMap", c: 'String str = "niranjan";\nchar[] arr = str.toCharArray();\nLinkedHashMap<Character, Integer> lm = new LinkedHashMap<>();\nfor (Character c : arr) {\n    if (lm.containsKey(c)) lm.put(c, lm.get(c) + 1);\n    else lm.put(c, 1);\n}\nfor (Map.Entry<Character, Integer> m : lm.entrySet()) {\n    if (m.getValue() == 1) {\n        System.out.println("first non-repeating: " + m.getKey());\n        break;\n    }\n}' }]
+    },
+    {
+      q: "Reverse the words in a given sentence",
+      variants: [
+        { l: "Collections.reverse + StringJoiner", c: 'String str = "i love my country";\nString[] strArr = str.split("\\\\s+");\nList<String> stringList = Arrays.asList(strArr);\nCollections.reverse(stringList);\nStringJoiner sj = new StringJoiner(" ");\nfor (String s : stringList) { sj.add(s); }\nSystem.out.println(sj.toString());' },
+        { l: "Simple prepend loop", c: 'String str = "I love my country";\nString[] strArr = str.split("\\\\s+");\nString revStr = "";\nfor (String s : strArr) { revStr = s + " " + revStr; }\nSystem.out.println(revStr.trim());' }
+      ]
+    },
+    {
+      q: "Convert String to Integer and Integer to String",
+      variants: [
+        { l: "String to int – Integer.parseInt()", c: 'String str = "123";\nint num = Integer.parseInt(str);\nSystem.out.println(num);' },
+        { l: "int to String – String.valueOf()", c: 'int num = 123;\nString strVal = String.valueOf(num);\nSystem.out.println(strVal);' }
+      ]
+    },
+    {
+      q: "Replace or remove a character / substring from a String",
+      variants: [
+        { l: "Replace a character", c: 'String str = "Java";\nString replacedStr = str.replace("J", "K");\nSystem.out.println(replacedStr); // Kava' },
+        { l: "Remove a character", c: 'String str = "Java";\nString replacedStr = str.replace("v", "");\nSystem.out.println(replacedStr); // Jaa' },
+        { l: "Remove all duplicate whitespace", c: 'String str = "java   is a good     language";\nString replacedStr = str.replaceAll("\\\\s+", " ");\nSystem.out.println(replacedStr);' }
+      ]
+    },
+    {
+      q: "Count the number of words in a String",
+      variants: [{ l: "trim() + split(\"\\\\s+\")", c: 'String str = "java is a good programming   language in java world ";\nif (str == null || str.isEmpty()) {\n    System.out.println("word count is: 0");\n} else {\n    String trimmedStr = str.trim();\n    String[] strArr = trimmedStr.split("\\\\s+");\n    System.out.println("word count is: " + strArr.length);\n}' }]
+    },
+    {
+      q: "Check if String contains only alphabets / digits / alphanumeric / special chars",
+      variants: [
+        { l: "String.matches() with regex", c: 'String input = "Hello123";\nif (input.matches("^[a-zA-Z]+$"))\n    System.out.println("Only alphabets");\nelse if (input.matches("^[0-9]+$"))\n    System.out.println("Only digits");\nelse if (input.matches("^[a-zA-Z0-9]+$"))\n    System.out.println("Alphanumeric");\nelse\n    System.out.println("Contains special characters");' },
+        { l: "Pattern + Matcher (only digits example)", c: 'String digitsRegex = "^[0-9]+$";\nPattern p = Pattern.compile(digitsRegex);\nMatcher m = p.matcher(input);\nif (m.matches()) System.out.println("Only digits: " + input);\nelse System.out.println("Not only digits: " + input);' }
+      ]
+    },
+    {
+      q: "Validate an email address using regex",
+      variants: [{ l: "String.matches() with email regex", c: 'String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$";\nScanner sc = new Scanner(System.in);\nSystem.out.println("Enter email address:");\nString input = sc.nextLine();\nif (input.matches(emailRegex))\n    System.out.println("Email is valid: " + input);\nelse\n    System.out.println("Email is not valid: " + input);\nsc.close();' }]
+    },
+    {
+      q: "Find longest substring without repeating characters",
+      variants: [{ l: "distinct() on split characters", c: 'String str = "abbbca";\nString s = Arrays.asList(str.split(""))\n    .stream()\n    .distinct()\n    .collect(Collectors.joining(""))\n    .toString();\nSystem.out.println("Longest: " + s + ", length: " + s.length());' }]
+    }
+  ]
+},
+{
+  title: "Array Utilities",
+  qs: [
+    {
+      q: "Find minimum and maximum element in an integer array",
+      variants: [
+        { l: "Using Stream API", c: "int[] num = {1, 2, 9292, 277, 88};\nSystem.out.println(\"maximum: \" + Arrays.stream(num).max().getAsInt());\nSystem.out.println(\"minimum: \" + Arrays.stream(num).min().getAsInt());" },
+        { l: "Sort then index", c: "int[] num = {1, 2, 9292, 277, 88};\nArrays.sort(num);\nSystem.out.println(\"maximum: \" + num[num.length-1]);\nSystem.out.println(\"minimum: \" + num[0]);" }
+      ]
+    },
+    {
+      q: "Reverse an array of integers",
+      variants: [{ l: "boxed() + Collections.reverse()", c: "int[] num = {1, 2, 9292, 277, 88};\nList<Integer> numList = Arrays.stream(num).boxed().collect(Collectors.toList());\nCollections.reverse(numList);\nSystem.out.println(numList);" }]
+    },
+    {
+      q: "Reverse an array of characters using Stream API",
+      variants: [{ l: "IntStream + Collections.reverse()", c: "char[] charArray = {'a', 'b', 'c', 'd', 'e'};\nList<Character> charList = IntStream.range(0, charArray.length)\n    .mapToObj(i -> charArray[i]).collect(Collectors.toList());\nCollections.reverse(charList);\nchar[] reversedCharArray = charList.stream()\n    .map(c -> String.valueOf(c))\n    .collect(Collectors.joining())\n    .toCharArray();" }]
+    },
+    {
+      q: "Find frequency of an element in an array",
+      variants: [{ l: "Collections.frequency()", c: "int[] num = {1, 2, 2, 3, 9292, 2, 277, 88};\nint frequency = Collections.frequency(\n    Arrays.stream(num).boxed().collect(Collectors.toList()), 2);\nSystem.out.println(\"frequency of 2: \" + frequency);" }]
+    },
+    {
+      q: "Check whether two arrays are equal",
+      variants: [{ l: "Arrays.equals()", c: "int[] arr1 = {1, 2, 3, 49};\nint[] arr2 = {1, 2, 3, 49, 45, 80};\nboolean b = Arrays.equals(arr1, arr2);\nSystem.out.println(b); // false" }]
+    },
+    {
+      q: "Shuffle elements of an array (randomize order)",
+      variants: [{ l: "Collections.shuffle()", c: "int[] arr = {1, 2, 3, 49};\nList<Integer> list = Arrays.stream(arr).boxed().collect(Collectors.toList());\nCollections.shuffle(list);\nSystem.out.println(list);" }]
+    },
+    {
+      q: "Check if an ArrayList is empty",
+      variants: [{ l: "list.isEmpty()", c: "List<Integer> list = new ArrayList<>();\nlist.add(5);\nSystem.out.println(list.isEmpty()); // false" }]
+    },
+    {
+      q: "Remove all occurrences of an element from a List",
+      variants: [{ l: "removeAll + Collections.singleton()", c: "int[] arr = {1, 2, 3, 49, 2, 3, 45, 80};\nList<Integer> numList = Arrays.stream(arr).boxed().collect(Collectors.toList());\nnumList.removeAll(Collections.singleton(3)); // removes all 3s\nSystem.out.println(numList);" }]
+    },
+    {
+      q: "Remove null values from an ArrayList",
+      variants: [{ l: "removeAll(Collections.singleton(null))", c: "List<String> fruitList = new ArrayList<>(\n    Arrays.asList(\"mango\", \"orange\", \"banana\", null, \"apple\", null, \"pears\"));\nfruitList.removeAll(Collections.singleton(null));\nSystem.out.println(fruitList);" }]
+    },
+    {
+      q: "Find first and last index of an element in a List",
+      variants: [{ l: "indexOf() and lastIndexOf()", c: "int[] arr = {1, 2, 3, 49, 2, 3, 45, 80};\nList<Integer> numList = Arrays.stream(arr).boxed().collect(Collectors.toList());\nint firstIndex = numList.indexOf(3);\nint lastIndex  = numList.lastIndexOf(3);\nSystem.out.println(\"First index: \" + firstIndex);\nSystem.out.println(\"Last index:  \" + lastIndex);" }]
+    },
+    {
+      q: "Create an unmodifiable List",
+      variants: [{ l: "Collections.unmodifiableList()", c: "List<String> fruitList = new ArrayList<>(\n    Arrays.asList(\"mango\", \"orange\", \"banana\", \"apple\", \"pears\"));\nfruitList = Collections.unmodifiableList(fruitList);\n// fruitList.add(\"papaya\"); -> throws UnsupportedOperationException" }]
+    },
+    {
+      q: "Create a synchronized List",
+      variants: [{ l: "Collections.synchronizedList()", c: "List<String> fruitList = new ArrayList<>(\n    Arrays.asList(\"mango\", \"orange\", \"banana\", \"apple\", \"pears\"));\nfruitList = Collections.synchronizedList(fruitList);" }]
+    },
+    {
+      q: "Filter numbers starting with '1' from an integer array",
+      variants: [
+        { l: "for-each + startsWith", c: "int[] num = {12, 14, 34, 67, 17};\nfor (Integer i : num) {\n    if (Integer.toString(i).startsWith(\"1\")) {\n        System.out.println(i);\n    }\n}" },
+        { l: "Stream filter", c: "int[] a = {12, 23, 14, 15, 43};\nint[] filtered = Arrays.stream(a)\n    .filter(i -> String.valueOf(i).startsWith(\"1\"))\n    .toArray();\nfor (Integer i : filtered) { System.out.print(i + \" \"); }" }
+      ]
+    },
+    {
+      q: "Find second highest and Nth lowest number from array",
+      variants: [{ l: "Sort then index", c: "int[] number = {12, 43, 5, 6, 89, 330};\nArrays.sort(number);\nSystem.out.println(\"Second highest: \" + number[number.length - 2]);\nSystem.out.println(\"3rd lowest:     \" + number[2]);" }]
+    },
+    {
+      q: "Binary Search and Linear Search in an array",
+      variants: [
+        { l: "Binary Search (sorted array required)", c: "int[] arr = {23, 63, 4, 76, 26, 39, 97, 30};\nint elementToSearch = 97;\nArrays.sort(arr);\nint index = Arrays.binarySearch(arr, elementToSearch);\nif (index >= 0) System.out.println(\"Found at index: \" + index);\nelse System.out.println(\"Element not found\");" },
+        { l: "Linear Search", c: "int[] arr = {23, 63, 4, 76, 26, 39, 97, 30};\nint elementToSearch = 4;\nint index = -1;\nfor (int i = 0; i < arr.length; i++) {\n    if (arr[i] == elementToSearch) { index = i; break; }\n}\nif (index >= 0) System.out.println(\"Found at index: \" + index);\nelse System.out.println(\"Element not found\");" }
+      ]
+    }
+  ]
+},
+{
+  title: "Numbers and Patterns",
+  qs: [
+    {
+      q: "Print first N Fibonacci numbers",
+      note: "Each number = sum of previous two: 0, 1, 1, 2, 3, 5, 8...",
+      variants: [{ l: "Print first 10 Fibonacci numbers", c: "int a = 0;\nint b = 1;\nList<Integer> fibs = new ArrayList<>();\nfibs.add(a);\nfibs.add(b);\nfor (int i = 2; i < 10; i++) {\n    int c = a + b;\n    fibs.add(c);\n    a = b;\n    b = c;\n}\nSystem.out.println(fibs);" }]
+    },
+    {
+      q: "Print all Fibonacci numbers up to a given limit (e.g. 100)",
+      variants: [{ l: "While loop until limit exceeded", c: "int num = 100;\nint a = 0;\nint b = 1;\nList<Integer> fibs = new ArrayList<>();\nfibs.add(a);\nfibs.add(b);\nfor (int i = 2; i < 100; i++) {\n    int c = a + b;\n    if (c <= num && c > 0) { fibs.add(c); }\n    a = b;\n    b = c;\n}\nSystem.out.println(fibs);" }]
+    },
+    {
+      q: "Check if a number is an Armstrong number",
+      note: "371 = 3^3 + 7^3 + 1^3 = 27 + 343 + 1 = 371",
+      variants: [{ l: "Math.pow() + digit count", c: "int num = 371;\nint temp = num;\nint sum = 0;\nint length = String.valueOf(num).length();\nwhile (num > 0) {\n    int remainder = num % 10;\n    sum = (int)(sum + Math.pow(remainder, length));\n    num = num / 10;\n}\nif (sum == temp) System.out.println(\"Armstrong!!\");\nelse System.out.println(\"Not Armstrong!!\");" }]
+    },
+    {
+      q: "Check if a number is Prime",
+      note: "Prime = divisible only by 1 and itself.",
+      variants: [{ l: "Loop from 2 to num-1", c: "int num = 11;\nboolean check = true;\nfor (int i = 2; i < num; i++) {\n    if (num % i == 0) {\n        check = false;\n        break;\n    }\n}\nif (check) System.out.println(\"Prime number!!\");\nelse System.out.println(\"Not prime number!!\");" }]
+    }
+  ]
+},
+{
+  title: "Map Operations",
+  qs: [
+    {
+      q: "Sort a Map by keys – ascending and descending",
+      variants: [
+        { l: "Ascending by key", c: "Map<Integer, String> empMap = new HashMap<>();\nempMap.put(1312, \"Niranjan Madak\");\nempMap.put(1010, \"Asish Dash\");\nempMap.put(9999, \"Ankit Lakhotia\");\nempMap.put(232, \"Deepa Chandran\");\n\nMap<Integer, String> sortedByKey = empMap.entrySet().stream()\n    .sorted(Map.Entry.comparingByKey())\n    .collect(Collectors.toMap(\n        Map.Entry::getKey, Map.Entry::getValue,\n        (e1, e2) -> e1, LinkedHashMap::new));\nSystem.out.println(sortedByKey);\n// {232=Deepa, 1010=Asish, 1312=Niranjan, 9999=Ankit}" },
+        { l: "Descending by key", c: "Map<Integer, String> sortedDesc = empMap.entrySet().stream()\n    .sorted(Map.Entry.<Integer,String>comparingByKey().reversed())\n    .collect(Collectors.toMap(\n        Map.Entry::getKey, Map.Entry::getValue,\n        (e1, e2) -> e1, LinkedHashMap::new));\nSystem.out.println(sortedDesc);" }
+      ]
+    },
+    {
+      q: "Sort a Map by values – ascending and descending",
+      variants: [
+        { l: "Ascending by value", c: "Map<Integer, String> sortedByVal = empMap.entrySet().stream()\n    .sorted(Map.Entry.comparingByValue())\n    .collect(Collectors.toMap(\n        Map.Entry::getKey, Map.Entry::getValue,\n        (e1, e2) -> e1, LinkedHashMap::new));\nSystem.out.println(sortedByVal);\n// {9999=Ankit, 1010=Asish, 232=Deepa, 1312=Niranjan}" },
+        { l: "Descending by value", c: "Map<Integer, String> sortedDesc = empMap.entrySet().stream()\n    .sorted(Map.Entry.<Integer,String>comparingByValue().reversed())\n    .collect(Collectors.toMap(\n        Map.Entry::getKey, Map.Entry::getValue,\n        (e1, e2) -> e1, LinkedHashMap::new));\nSystem.out.println(sortedDesc);" }
+      ]
+    },
+    {
+      q: "Traverse a Map using forEach (Java 8 lambda)",
+      variants: [
+        { l: "Java 8 forEach lambda", c: "empMap.forEach((key, value) ->\n    System.out.println(\"key: \" + key + \"  value: \" + value));" },
+        { l: "Traditional for-each with entrySet", c: "for (Map.Entry<Integer, String> entry : empMap.entrySet()) {\n    System.out.println(\"key: \" + entry.getKey() + \"  value: \" + entry.getValue());\n}" }
+      ]
+    },
+    {
+      q: "Collect Map keys and values into a Set",
+      variants: [
+        { l: "Keys into a Set", c: "Set<Integer> keys = empMap.entrySet().stream()\n    .map(Map.Entry::getKey)\n    .collect(Collectors.toSet());\nSystem.out.println(keys);\n// [1312, 1010, 232, 9999]" },
+        { l: "Values into a Set", c: "Set<String> values = empMap.entrySet().stream()\n    .map(Map.Entry::getValue)\n    .collect(Collectors.toSet());\nSystem.out.println(values);" }
+      ]
+    }
+  ]
+},
+{
+  title: "Employee List – Stream API on Objects",
+  qs: [
+    {
+      q: "Get all employee names from a List of Employee objects",
+      variants: [{ l: "map() to extract names", c: "List<String> empNames = empList.stream()\n    .map(e -> e.getEmpName())\n    .collect(Collectors.toList());\nSystem.out.println(empNames);" }]
+    },
+    {
+      q: "Find employee with minimum or maximum salary",
+      variants: [
+        { l: "Min salary employee", c: "Employee minSal = empList.stream()\n    .min((e1, e2) -> (int)(e1.getSalary() - e2.getSalary())).get();\nSystem.out.println(minSal);" },
+        { l: "Max salary employee", c: "Employee maxSal = empList.stream()\n    .max((e1, e2) -> (int)(e1.getSalary() - e2.getSalary())).get();\nSystem.out.println(maxSal);" },
+        { l: "Name of employee with min salary", c: "String minName = empList.stream()\n    .min((e1, e2) -> (int)(e1.getSalary() - e2.getSalary()))\n    .map(Employee::getEmpName).get();\nSystem.out.println(minName);" }
+      ]
+    },
+    {
+      q: "Sort employee list by ID, name, or salary (ascending and descending)",
+      variants: [
+        { l: "Ascending by empId", c: "Collections.sort(empList, Comparator.comparing(Employee::getEmpId));\nSystem.out.println(empList);" },
+        { l: "Ascending by name", c: "Collections.sort(empList, Comparator.comparing(Employee::getEmpName));" },
+        { l: "Ascending by salary", c: "Collections.sort(empList, Comparator.comparing(Employee::getSalary));" },
+        { l: "Descending by empId", c: "Collections.sort(empList, Comparator.comparing(Employee::getEmpId).reversed());" },
+        { l: "Multi-level: empId then salary", c: "Collections.sort(empList,\n    Comparator.comparing(Employee::getEmpId)\n              .thenComparing(Employee::getSalary));\nSystem.out.println(empList);" }
+      ]
+    },
+    {
+      q: "Collect employee list into a Map (various forms)",
+      variants: [
+        { l: "name -> salary", c: "Map<String, Double> empWithSalary = empList.stream()\n    .collect(Collectors.toMap(Employee::getEmpName, Employee::getSalary));\nSystem.out.println(empWithSalary);" },
+        { l: "empId -> Employee object", c: "Map<Integer, Employee> employeeMap = empList.stream()\n    .collect(Collectors.toMap(Employee::getEmpId, Function.identity()));\nSystem.out.println(employeeMap);" },
+        { l: "Group by department", c: "Map<String, List<Employee>> empMap = empList.stream()\n    .collect(Collectors.groupingBy(e -> e.getDepartment()));\nSystem.out.println(empMap);" }
+      ]
+    }
+  ]
+},
+{
+  title: "File I/O and Console Input",
+  qs: [
+    {
+      q: "Read a file and print its lines to console",
+      variants: [
+        { l: "BufferedReader + try-with-resources", c: "String filePath = \"C:/path/to/file.txt\";\ntry (BufferedReader br = new BufferedReader(new FileReader(filePath))) {\n    String line = br.readLine();\n    while (line != null) {\n        System.out.println(line);\n        line = br.readLine();\n    }\n} catch (IOException e) { e.printStackTrace(); }" },
+        { l: "Scanner + File", c: "try {\n    File file = new File(\"C:/path/to/file.txt\");\n    Scanner sc = new Scanner(file);\n    while (sc.hasNextLine()) {\n        String line = sc.nextLine();\n        System.out.println(line);\n    }\n    sc.close();\n} catch (FileNotFoundException e) { e.printStackTrace(); }" },
+        { l: "Files.readAllLines (Java NIO)", c: "String filePath = \"C:/path/to/file.txt\";\ntry {\n    List<String> lines = Files.readAllLines(Paths.get(filePath));\n    for (String line : lines) { System.out.println(line); }\n} catch (IOException e) { e.printStackTrace(); }" }
+      ]
+    },
+    {
+      q: "Write console input to a file (type 'exit' to stop)",
+      variants: [{ l: "FileWriter + Scanner", c: "Scanner sc = new Scanner(System.in);\nSystem.out.println(\"Enter inputs (type 'exit' to finish):\");\ntry (FileWriter fw = new FileWriter(\"output.txt\")) {\n    while (true) {\n        String input = sc.nextLine();\n        if (input.equalsIgnoreCase(\"exit\")) break;\n        fw.write(input + System.lineSeparator());\n    }\n    System.out.println(\"Contents written successfully!\");\n} catch (IOException e) {\n    System.err.println(\"Error: \" + e.getMessage());\n}" }]
+    },
+    {
+      q: "Read multiple lines of input from console",
+      variants: [
+        { l: "Scanner with loop (type 'exit' to end)", c: "Scanner sc = new Scanner(System.in);\nList<String> lines = new ArrayList<>();\nSystem.out.println(\"Enter inputs (type 'exit' to finish):\");\nwhile (true) {\n    String line = sc.nextLine();\n    if (line.equalsIgnoreCase(\"exit\")) { System.out.println(lines); break; }\n    lines.add(line);\n}\nsc.close();" },
+        { l: "BufferedReader", c: "BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\nString line;\nList<String> lines = new ArrayList<>();\nSystem.out.println(\"Enter inputs (type 'exit' to finish):\");\nwhile (true) {\n    line = br.readLine();\n    if (line.equalsIgnoreCase(\"exit\")) { System.out.println(lines); break; }\n    lines.add(line);\n}\nbr.close();" }
+      ]
+    },
+    {
+      q: "Create an integer array from console input",
+      variants: [{ l: "Scanner with nextInt()", c: "Scanner sc = new Scanner(System.in);\nSystem.out.println(\"Enter the size of the array:\");\nint size = sc.nextInt();\nint[] numbers = new int[size];\nSystem.out.println(\"Enter elements:\");\nfor (int i = 0; i <= numbers.length - 1; i++) {\n    numbers[i] = sc.nextInt();\n}\nSystem.out.println(Arrays.toString(numbers));\nsc.close();" }]
+    }
+  ]
+}
+];
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── CUSTOM Q's (localStorage) ─────────────────────────────────────────────────
+// ── STORAGE ────────────────────────────────────────────────────────────────────
+var CUSTOM_KEY   = 'java_dsa_custom_qs';
+var VARIANTS_KEY = 'java_dsa_extra_variants';
+
+function loadCustom() { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]'); } catch(e){ return []; } }
+function saveCustom(a) { try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(a)); } catch(e){} }
+
+function loadExtraVariants() { try { return JSON.parse(localStorage.getItem(VARIANTS_KEY)||'{}'); } catch(e){ return {}; } }
+function saveExtraVariants(obj) { try { localStorage.setItem(VARIANTS_KEY, JSON.stringify(obj)); } catch(e){} }
+function getExtras(key) { return loadExtraVariants()[key] || []; }
+function addExtra(key, variant) {
+  var all = loadExtraVariants();
+  if (!all[key]) all[key] = [];
+  all[key].push(variant);
+  saveExtraVariants(all);
+}
+
+function getSections() {
+  var c = loadCustom();
+  if (c.length === 0) return SECTIONS;
+  return [{ title: '\u2B50 My Custom Questions', qs: c, isCustom: true }].concat(SECTIONS);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(filter) {
+  var root = document.getElementById('root');
+  var noR  = document.getElementById('noResults');
+  filter = (filter||'').toLowerCase().trim();
+  var html = '', total = 0;
+  var all = getSections();
+
+  for (var si = 0; si < all.length; si++) {
+    var sec = all[si], isC = !!sec.isCustom, items = [];
+    for (var qi = 0; qi < sec.qs.length; qi++) {
+      var q = sec.qs[qi];
+      if (!filter) { items.push({q:q,idx:qi,si:si}); continue; }
+      var hit = q.q.toLowerCase().indexOf(filter)>=0 || ((q.note||'').toLowerCase().indexOf(filter)>=0);
+      if (!hit) for (var vi=0;vi<q.variants.length;vi++) {
+        if (q.variants[vi].l.toLowerCase().indexOf(filter)>=0 || q.variants[vi].c.toLowerCase().indexOf(filter)>=0){ hit=true; break; }
+      }
+      if (hit) items.push({q:q,idx:qi,si:si});
+    }
+    if (!items.length) continue;
+    total += items.length;
+    html += '<div class="section-wrap"><div class="section-title">'+esc(sec.title)+'</div>';
+
+    for (var ii=0;ii<items.length;ii++) {
+      var item=items[ii].q, oidx=items[ii].idx, sIdx=items[ii].si;
+      var varKey = sIdx+'_'+oidx;
+
+      var noteHtml = item.note ? '<div class="note">&#128204; '+esc(item.note)+'</div>' : '';
+
+      var vHtml = '';
+      for (var vv=0;vv<item.variants.length;vv++) {
+        var v=item.variants[vv];
+        vHtml += '<div class="variant"><div class="vlabel">'+esc(v.l)+'</div><pre>'+esc(v.c)+'</pre></div>';
+      }
+
+      // Extra user-added variants for this question
+      var extras = getExtras(varKey);
+      for (var ev=0;ev<extras.length;ev++) {
+        var xv=extras[ev];
+        vHtml += '<div class="variant" style="border-left:3px solid #f97316;">'+
+                 '<div class="vlabel" style="color:#fb923c;">&#11088; '+esc(xv.l)+'</div>'+
+                 '<pre>'+esc(xv.c)+'</pre></div>';
+      }
+
+      // Inline Add Variant button at bottom of every q-body
+      var addBtn = '<div style="padding:10px 14px 12px;">'+
+                   '<button class="inline-add-btn" onclick="openInlineModal(\''+varKey+'\')">'+
+                   '&#43;&nbsp; Add Variant to this question</button></div>';
+
+      html += '<div class="q-card'+(isC?' custom-card':'')+'" data-vkey="'+varKey+'">'+
+              '<div class="q-trigger">'+
+                '<div class="q-text">'+esc(item.q)+'</div>'+
+                '<div class="chevron">&#9660;</div>'+
+              '</div>'+
+              '<div class="q-body">'+noteHtml+vHtml+addBtn+'</div>'+
+              '</div>';
+    }
+    html += '</div>';
+  }
+  root.innerHTML = html;
+  noR.style.display = total===0 ? 'block' : 'none';
+}
+
+// ── ACCORDION ─────────────────────────────────────────────────────────────────
+document.getElementById('root').addEventListener('click', function(e) {
+  var el = e.target;
+  while (el && el !== this) {
+    if (el.classList.contains('inline-add-btn')) return;
+    if (el.classList.contains('q-trigger')) {
+      var card = el.closest ? el.closest('.q-card') : el.parentElement;
+      if (card) card.classList.toggle('open');
+      return;
+    }
+    el = el.parentElement;
+  }
+});
+
+document.getElementById('searchBox').addEventListener('input', function(){ render(this.value); });
+
+// ── ADD NEW QUESTION MODAL (FAB) ───────────────────────────────────────────────
+var variantCount = 1;
+
+function openModal() {
+  variantCount = 1;
+  document.getElementById('qTitle').value = '';
+  document.getElementById('qNote').value = '';
+  document.getElementById('variantsWrap').innerHTML = makeVariantBlock(0);
+  document.getElementById('addModal').style.display = 'flex';
+  document.getElementById('qTitle').focus();
+}
+function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+function makeVariantBlock(idx) {
+  return '<div class="variant-block" id="vb'+idx+'">'+
+    '<div class="vb-header"><span class="vb-label">Answer / Variant '+(idx+1)+'</span>'+
+    (idx>0 ? '<button type="button" class="rm-variant" onclick="removeVariant('+idx+')">&#10005; Remove</button>' : '')+
+    '</div>'+
+    '<input type="text" class="modal-input" id="vLabel'+idx+'" placeholder="Label (e.g. Using HashMap)" />'+
+    '<textarea class="modal-code" id="vCode'+idx+'" rows="6" placeholder="Paste your code here..."></textarea>'+
+    '</div>';
+}
+function addVariant() {
+  document.getElementById('variantsWrap').insertAdjacentHTML('beforeend', makeVariantBlock(variantCount));
+  variantCount++;
+}
+function removeVariant(idx) { var e=document.getElementById('vb'+idx); if(e) e.remove(); }
+
+function saveQuestion() {
+  var title = document.getElementById('qTitle').value.trim();
+  var note  = document.getElementById('qNote').value.trim();
+  if (!title) { alert('Please enter a question title.'); return; }
+  var variants = [];
+  for (var i=0;i<variantCount;i++) {
+    var lEl=document.getElementById('vLabel'+i), cEl=document.getElementById('vCode'+i);
+    if (!lEl||!cEl) continue;
+    var l=lEl.value.trim(), c=cEl.value.trim();
+    if (!l&&!c) continue;
+    variants.push({l: l||'Solution', c: c});
+  }
+  if (!variants.length) { alert('Please add at least one answer/variant.'); return; }
+  var newQ = {q:title, variants:variants};
+  if (note) newQ.note = note;
+  var c = loadCustom(); c.push(newQ); saveCustom(c);
+  closeModal();
+  render(document.getElementById('searchBox').value);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('addModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+// ── INLINE ADD VARIANT MODAL (per question) ────────────────────────────────────
+var inlineVariantKey = null;
+
+// Inject inline modal into DOM once
+(function() {
+  var m = document.createElement('div');
+  m.id = 'ivModal';
+  m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.84);'+
+                    'z-index:1001;align-items:flex-end;justify-content:center;';
+  m.innerHTML =
+    '<div style="background:#1e293b;border-radius:16px 16px 0 0;width:100%;max-width:620px;'+
+      'max-height:82vh;display:flex;flex-direction:column;overflow:hidden;border:2px solid #f97316;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;'+
+           'padding:14px 18px;border-bottom:1px solid #334155;flex-shrink:0;">'+
+        '<span style="font-size:0.95rem;font-weight:700;color:#f97316;">&#11088; Add Variant to this Question</span>'+
+        '<button onclick="closeInlineModal()" style="background:#334155;border:none;color:#94a3b8;'+
+          'width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:0.85rem;'+
+          'display:flex;align-items:center;justify-content:center;">&#10005;</button>'+
+      '</div>'+
+      '<div style="padding:16px 18px;overflow-y:auto;flex:1;">'+
+        '<label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;'+
+          'letter-spacing:1px;color:#f97316;margin-bottom:6px;">Variant Label</label>'+
+        '<input id="ivLabel" type="text" placeholder="e.g. Using Stream API" '+
+          'style="width:100%;padding:9px 12px;border-radius:7px;border:1px solid #334155;'+
+          'background:#0f172a;color:#e2e8f0;font-size:0.88rem;outline:none;'+
+          'margin-bottom:14px;box-sizing:border-box;" />'+
+        '<label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;'+
+          'letter-spacing:1px;color:#f97316;margin-bottom:6px;">Code / Solution *</label>'+
+        '<textarea id="ivCode" rows="9" placeholder="Paste your code or notes here..." '+
+          'style="width:100%;padding:9px 12px;border-radius:7px;border:1px solid #334155;'+
+          'background:#070f1a;color:#cdd6f4;font-family:Courier New,monospace;font-size:0.78rem;'+
+          'line-height:1.65;outline:none;resize:vertical;box-sizing:border-box;"></textarea>'+
+      '</div>'+
+      '<div style="display:flex;gap:10px;padding:14px 18px;border-top:1px solid #334155;flex-shrink:0;">'+
+        '<button onclick="closeInlineModal()" '+
+          'style="flex:1;padding:11px;border-radius:8px;border:1px solid #475569;'+
+          'background:transparent;color:#94a3b8;font-size:0.9rem;cursor:pointer;">Cancel</button>'+
+        '<button onclick="saveInlineVariant()" '+
+          'style="flex:2;padding:11px;border-radius:8px;border:none;background:#f97316;'+
+          'color:#fff;font-size:0.9rem;font-weight:700;cursor:pointer;">&#10003;&nbsp; Save Variant</button>'+
+      '</div>'+
+    '</div>';
+  m.addEventListener('click', function(e){ if(e.target===m) closeInlineModal(); });
+  document.body.appendChild(m);
+})();
+
+function openInlineModal(varKey) {
+  inlineVariantKey = varKey;
+  document.getElementById('ivLabel').value = '';
+  document.getElementById('ivCode').value  = '';
+  var m = document.getElementById('ivModal');
+  m.style.display = 'flex';
+  document.getElementById('ivLabel').focus();
+}
+function closeInlineModal() {
+  document.getElementById('ivModal').style.display = 'none';
+  inlineVariantKey = null;
+}
+function saveInlineVariant() {
+  var label = document.getElementById('ivLabel').value.trim();
+  var code  = document.getElementById('ivCode').value.trim();
+  if (!code) { alert('Please enter code or notes for this variant.'); return; }
+  addExtra(inlineVariantKey, { l: label || 'My Variant', c: code });
+  closeInlineModal();
+  var currentFilter = document.getElementById('searchBox').value;
+  render(currentFilter);
+  // Re-open the card that received the new variant
+  setTimeout(function(){
+    var card = document.querySelector('.q-card[data-vkey="'+inlineVariantKey+'"]');
+    if (card) { card.classList.add('open'); card.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  }, 60);
+}
+
+render('');
+</script>
+</body>
+</html>

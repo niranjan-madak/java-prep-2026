@@ -1,0 +1,2731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REST API Cheat Sheet</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f1117; color: #e2e8f0; min-height: 100vh; padding-bottom: 90px;
+}
+header {
+  background: linear-gradient(135deg, #1a0a2e 0%, #0f1117 60%, #0a1a2e 100%);
+  padding: 24px 16px 20px; text-align: center; border-bottom: 2px solid #f59e0b;
+  position: relative;
+}
+header h1 { font-size: 1.5rem; color: #fbbf24; font-weight: 800; letter-spacing: -0.5px; }
+header .sub { font-size: 0.78rem; color: #9ca3af; margin-top: 6px; line-height: 1.5; }
+header .badges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
+header .badge {
+  background: #1f2937; border: 1px solid #374151; border-radius: 20px;
+  padding: 3px 10px; font-size: 0.65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px; color: #f59e0b;
+}
+
+.sticky-bar {
+  position: sticky; top: 0; z-index: 200; background: #161b27;
+  border-bottom: 1px solid #1f2937; padding: 10px 12px;
+  display: flex; gap: 8px;
+}
+.sticky-bar input {
+  flex: 1; padding: 9px 14px; border-radius: 8px; border: 1px solid #374151;
+  background: #0f1117; color: #e2e8f0; font-size: 0.9rem; outline: none;
+}
+.sticky-bar input:focus { border-color: #f59e0b; }
+.sticky-bar input::placeholder { color: #4b5563; }
+
+/* SECTION */
+.section-wrap { margin: 16px 10px 6px; }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 8px; border-bottom: 1px solid #1f2937; margin-bottom: 8px;
+}
+.section-title {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.8px;
+  color: #f59e0b; font-weight: 800;
+}
+.section-add-btn {
+  background: transparent; border: 1px dashed #374151; color: #6b7280;
+  border-radius: 6px; padding: 3px 10px; font-size: 0.65rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.section-add-btn:hover, .section-add-btn:active { border-color: #f59e0b; color: #f59e0b; }
+
+/* CARD */
+.q-card {
+  background: #161b27; border: 1px solid #1f2937;
+  border-radius: 10px; margin-bottom: 7px; overflow: hidden;
+}
+.q-card.open { border-color: #f59e0b; }
+.q-trigger {
+  display: flex; align-items: center; gap: 10px; padding: 13px 14px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.q-trigger:active { background: #1a2035; }
+.q-badge {
+  font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.8px; padding: 2px 7px; border-radius: 4px;
+  flex-shrink: 0; line-height: 1.6;
+}
+.badge-concept  { background: #1e3a5f; color: #60a5fa; }
+.badge-impl     { background: #1a2e1a; color: #4ade80; }
+.badge-scenario { background: #2e1a1a; color: #f87171; }
+.badge-design   { background: #2e2a1a; color: #fbbf24; }
+.badge-security { background: #2a1a2e; color: #c084fc; }
+.badge-perf     { background: #1a2e2e; color: #2dd4bf; }
+.badge-testing  { background: #1e2a3a; color: #93c5fd; }
+.badge-custom   { background: #2e1a2a; color: #f9a8d4; }
+
+.q-text { flex: 1; font-size: 0.87rem; font-weight: 600; color: #e2e8f0; line-height: 1.35; }
+.q-card.open .q-text { color: #fbbf24; }
+.chevron {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: #1f2937; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #6b7280; transition: transform 0.22s, background 0.2s;
+}
+.q-card.open .chevron { transform: rotate(180deg); background: #f59e0b; color: #0f1117; }
+
+.q-body { display: none; border-top: 1px solid #1f2937; }
+.q-card.open .q-body { display: block; }
+
+.note {
+  margin: 10px 14px 0; background: #181510;
+  border-left: 3px solid #f59e0b; border-radius: 0 6px 6px 0;
+  padding: 8px 11px; font-size: 0.78rem; color: #d4a843; line-height: 1.55;
+}
+.variant { padding: 10px 14px 12px; border-bottom: 1px solid #0f1117; }
+.variant:last-child { border-bottom: none; }
+.vlabel {
+  font-size: 0.63rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: #f59e0b; margin-bottom: 7px;
+}
+pre {
+  background: #0d1117; border: 1px solid #2a3347; border-radius: 7px;
+  padding: 13px; overflow-x: auto; font-family: 'Courier New', monospace;
+  font-size: 0.74rem; line-height: 1.8; color: #cdd6f4; white-space: pre;
+}
+
+.no-results { text-align: center; padding: 50px 20px; color: #374151; font-size: 0.9rem; }
+
+/* FAB */
+#fabBtn {
+  position: fixed; bottom: 24px; right: 20px; width: 54px; height: 54px;
+  border-radius: 50%; background: #f59e0b; color: #0f1117; font-size: 2rem;
+  font-weight: 300; border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(245,158,11,0.45); z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1; transition: transform 0.15s;
+}
+#fabBtn:active { transform: scale(0.92); }
+
+/* MODAL */
+#addModal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 1000;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+@media (min-width: 600px) { #addModal { align-items: center; padding: 20px; } }
+#modalBox {
+  background: #161b27; border-radius: 16px 16px 0 0; width: 100%;
+  max-width: 640px; max-height: 94vh; display: flex; flex-direction: column;
+  overflow: hidden; border: 1px solid #f59e0b;
+}
+@media (min-width: 600px) { #modalBox { border-radius: 16px; } }
+#modalHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid #1f2937; flex-shrink: 0;
+}
+#modalTitle { font-size: 1rem; font-weight: 700; color: #f59e0b; }
+#modalClose {
+  background: #1f2937; border: none; color: #6b7280; width: 28px; height: 28px;
+  border-radius: 50%; cursor: pointer; font-size: 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+}
+#modalBody { padding: 16px 18px; overflow-y: auto; flex: 1; }
+.modal-label {
+  display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: #f59e0b; margin-bottom: 6px; margin-top: 14px;
+}
+.modal-label:first-child { margin-top: 0; }
+.modal-input {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #374151;
+  background: #0f1117; color: #e2e8f0; font-size: 0.88rem; outline: none; margin-bottom: 2px;
+}
+.modal-input:focus { border-color: #f59e0b; }
+.modal-select {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #374151;
+  background: #0f1117; color: #e2e8f0; font-size: 0.88rem; outline: none;
+  margin-bottom: 2px; cursor: pointer;
+}
+.modal-select:focus { border-color: #f59e0b; }
+.modal-code {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #374151;
+  background: #0d1117; color: #cdd6f4; font-family: 'Courier New', monospace;
+  font-size: 0.78rem; line-height: 1.6; outline: none; resize: vertical; margin-bottom: 2px;
+}
+.modal-code:focus { border-color: #f59e0b; }
+.variant-block {
+  background: #0f1117; border: 1px solid #1f2937; border-radius: 8px;
+  padding: 12px; margin-bottom: 10px;
+}
+.vb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.vb-label { font-size: 0.75rem; font-weight: 700; color: #6b7280; }
+.rm-variant {
+  background: #161b27; border: 1px solid #374151; color: #f87171;
+  border-radius: 5px; padding: 3px 8px; font-size: 0.7rem; cursor: pointer;
+}
+#addVariantBtn {
+  width: 100%; padding: 9px; margin-top: 4px; background: transparent;
+  border: 1px dashed #374151; color: #6b7280; border-radius: 7px;
+  font-size: 0.82rem; cursor: pointer; transition: border-color 0.2s, color 0.2s;
+}
+#addVariantBtn:hover { border-color: #f59e0b; color: #f59e0b; }
+#modalFooter {
+  display: flex; gap: 10px; padding: 14px 18px;
+  border-top: 1px solid #1f2937; flex-shrink: 0;
+}
+#cancelBtn {
+  flex: 1; padding: 11px; border-radius: 8px; border: 1px solid #374151;
+  background: transparent; color: #6b7280; font-size: 0.9rem; cursor: pointer;
+}
+#saveBtn {
+  flex: 2; padding: 11px; border-radius: 8px; border: none;
+  background: #f59e0b; color: #0f1117; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+}
+#saveBtn:active { background: #d97706; }
+.custom-card { border-color: #292010 !important; }
+.custom-card.open { border-color: #f59e0b !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>&#9889; REST API — Complete Developer Cheat Sheet</h1>
+  <p class="sub">Architecture · Design · Implementation · Security · Performance · Scenarios<br>Spring Boot Enterprise Grade · Interview Ready</p>
+  <div class="badges">
+    <span class="badge">REST Fundamentals</span>
+    <span class="badge">HTTP Internals</span>
+    <span class="badge">Spring Boot</span>
+    <span class="badge">Security</span>
+    <span class="badge">Performance</span>
+    <span class="badge">Scenarios</span>
+    <span class="badge">Testing</span>
+    <span class="badge">Best Practices</span>
+  </div>
+</header>
+<div class="sticky-bar">
+  <input type="text" id="searchBox" placeholder="&#128269; Search (e.g. idempotent, versioning, jwt, pagination, 429...)" />
+</div>
+<div id="root"></div>
+<div id="noResults" class="no-results" style="display:none">No matches found.</div>
+<button id="fabBtn" onclick="openModal(null)" title="Add new question">+</button>
+<div id="addModal" style="display:none">
+  <div id="modalBox">
+    <div id="modalHeader">
+      <span id="modalTitle">Add New Question</span>
+      <button id="modalClose" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div id="modalBody">
+      <label class="modal-label">Section *</label>
+      <select class="modal-select" id="qSection"></select>
+      <label class="modal-label">Badge / Type</label>
+      <select class="modal-select" id="qBadge">
+        <option value="badge-concept">Concept</option>
+        <option value="badge-impl">Implementation</option>
+        <option value="badge-scenario">Scenario</option>
+        <option value="badge-design">Design</option>
+        <option value="badge-security">Security</option>
+        <option value="badge-perf">Performance</option>
+        <option value="badge-testing">Testing</option>
+        <option value="badge-custom">Custom</option>
+      </select>
+      <label class="modal-label">Question Title *</label>
+      <input type="text" class="modal-input" id="qTitle" placeholder="e.g. How to handle concurrent requests safely?" />
+      <label class="modal-label">Note / Tip (optional)</label>
+      <input type="text" class="modal-input" id="qNote" placeholder="e.g. Asked in Amazon, Flipkart interviews" />
+      <label class="modal-label" style="margin-top:16px">Answers / Variants</label>
+      <div id="variantsWrap"></div>
+      <button id="addVariantBtn" type="button" onclick="addVariant()">+ Add Another Variant</button>
+    </div>
+    <div id="modalFooter">
+      <button id="cancelBtn" onclick="closeModal()">Cancel</button>
+      <button id="saveBtn" onclick="saveQuestion()">Save Question</button>
+    </div>
+  </div>
+</div>
+<script>
+var SECTIONS = [
+// ═══════════════════════════════════════════════════════
+//  1. REST ARCHITECTURE & FUNDAMENTALS
+// ═══════════════════════════════════════════════════════
+{
+  title: "REST Architecture & Fundamentals",
+  qs: [
+    {
+      q: "What is REST and what are its 6 architectural constraints?",
+      badge: "badge-concept",
+      note: "REST = Representational State Transfer. Violating any constraint means your API is not truly RESTful.",
+      variants: [{l:"All 6 REST constraints explained", c:
+`/*
+  1. CLIENT-SERVER
+     - UI and data storage are separated
+     - Client doesn't care how data is stored; server doesn't care about UI
+     - Benefit: independent evolution of both sides
+
+  2. STATELESS
+     - Each request must contain ALL information needed to process it
+     - Server stores NO client session between requests
+     - Authentication token must be sent with EVERY request
+     - Benefit: horizontal scalability — any server can handle any request
+
+  3. CACHEABLE
+     - Responses must define themselves as cacheable or non-cacheable
+     - GET /products → Cache-Control: max-age=3600 (cache for 1 hour)
+     - POST /orders  → Cache-Control: no-store (never cache)
+     - Benefit: reduces server load, improves performance
+
+  4. UNIFORM INTERFACE (most important)
+     - Resource identification via URIs: /users/42
+     - Resource manipulation via representations (JSON/XML)
+     - Self-descriptive messages (Content-Type header)
+     - HATEOAS: responses contain links to related actions
+
+  5. LAYERED SYSTEM
+     - Client doesn't know if it talks directly to server
+       or through gateways, load balancers, caches
+     - Benefit: security, scalability, encapsulation
+
+  6. CODE ON DEMAND (optional)
+     - Server can send executable code (JavaScript) to client
+     - Rarely used in enterprise REST APIs
+*/`}]
+    },
+    {
+      q: "What is the difference between REST, SOAP, GraphQL and gRPC?",
+      badge: "badge-concept",
+      note: "This is a common senior-level interview question. Know the trade-offs cold.",
+      variants: [{l:"Comparison table", c:
+`/*
+  FEATURE        REST              SOAP              GraphQL           gRPC
+  ──────────────────────────────────────────────────────────────────────────
+  Protocol       HTTP              HTTP/SMTP/TCP     HTTP              HTTP/2
+  Format         JSON/XML/any      XML only          JSON              Protobuf (binary)
+  Schema         OpenAPI/Swagger   WSDL              SDL               .proto file
+  Flexibility    High              Low               Very high         Medium
+  Performance    Good              Poor              Good              Excellent
+  Type safety    Optional          Strong            Strong            Very strong
+  Caching        HTTP native       Limited           Complex           Limited
+  Learning curve Low               High              Medium            Medium-High
+  Best for       Public APIs       Enterprise legacy Flexible clients  Microservices/IoT
+  Spring support @RestController   Spring-WS         Spring GraphQL    spring-grpc
+
+  WHEN TO CHOOSE:
+  REST    → Public APIs, mobile/web clients, standard CRUD
+  SOAP    → Banking, legacy enterprise integrations (WS-Security)
+  GraphQL → Mobile apps needing precise data, BFF pattern
+  gRPC    → Internal microservice communication, low latency
+*/`}]
+    },
+    {
+      q: "What is HATEOAS and how do you implement it in Spring Boot?",
+      badge: "badge-impl",
+      note: "HATEOAS = Hypermedia As The Engine Of Application State. Level 3 of Richardson Maturity Model.",
+      variants: [
+        {l:"Richardson Maturity Model levels", c:
+`/*
+  LEVEL 0 – Plain XML/JSON over HTTP (not REST at all)
+    POST /getUser  { "id": 1 }
+
+  LEVEL 1 – Resources (proper URIs)
+    GET /users/1
+
+  LEVEL 2 – HTTP Verbs (GET, POST, PUT, DELETE + correct status codes)
+    GET /users/1      → 200 OK
+    POST /users       → 201 Created
+    DELETE /users/1   → 204 No Content
+
+  LEVEL 3 – HATEOAS (responses contain links to next actions)
+  {
+    "id": 1,
+    "name": "Niranjan",
+    "_links": {
+      "self":    { "href": "/api/users/1" },
+      "orders":  { "href": "/api/users/1/orders" },
+      "update":  { "href": "/api/users/1", "method": "PUT" },
+      "delete":  { "href": "/api/users/1", "method": "DELETE" }
+    }
+  }
+  Client navigates the API by following links — no hardcoded URLs!
+*/`},
+        {l:"Spring HATEOAS implementation", c:
+`// pom.xml
+// <dependency>spring-boot-starter-hateoas</dependency>
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @Autowired private UserService userService;
+
+    @GetMapping("/{id}")
+    public EntityModel<UserResponse> getUser(@PathVariable Long id) {
+        UserResponse user = userService.findById(id);
+
+        return EntityModel.of(user,
+            // self link
+            linkTo(methodOn(UserController.class).getUser(id)).withSelfRel(),
+            // related resource links
+            linkTo(methodOn(OrderController.class).getByUser(id)).withRel("orders"),
+            linkTo(methodOn(UserController.class).getAllUsers()).withRel("all-users")
+        );
+    }
+
+    @GetMapping
+    public CollectionModel<EntityModel<UserResponse>> getAllUsers() {
+        List<EntityModel<UserResponse>> users = userService.findAll().stream()
+            .map(u -> EntityModel.of(u,
+                linkTo(methodOn(UserController.class).getUser(u.getId())).withSelfRel()))
+            .collect(Collectors.toList());
+
+        return CollectionModel.of(users,
+            linkTo(methodOn(UserController.class).getAllUsers()).withSelfRel());
+    }
+}
+// Response:
+// { "id":1, "name":"Niranjan", "_links":{ "self":{"href":"/api/users/1"}, ... }}`}
+      ]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  2. HTTP METHODS, STATUS CODES & HEADERS — DEEP DIVE
+// ═══════════════════════════════════════════════════════
+{
+  title: "HTTP Methods, Status Codes & Headers",
+  qs: [
+    {
+      q: "Explain all HTTP methods with idempotency and safety properties",
+      badge: "badge-concept",
+      note: "Safe = no side effects. Idempotent = same result no matter how many times called. Critical interview topic.",
+      variants: [{l:"Full method reference", c:
+`/*
+  METHOD   SAFE  IDEMPOTENT  BODY    USE CASE
+  ──────────────────────────────────────────────────────────────────
+  GET      YES   YES         No      Read resource
+  HEAD     YES   YES         No      Read headers only (no body)
+  OPTIONS  YES   YES         No      CORS preflight, discover methods
+  POST     NO    NO          Yes     Create resource / trigger action
+  PUT      NO    YES         Yes     Full replace of resource
+  PATCH    NO    NO*         Yes     Partial update (* if designed right)
+  DELETE   NO    YES         No      Remove resource
+
+  KEY DISTINCTIONS:
+  PUT vs PATCH:
+    PUT   → send the ENTIRE object; missing fields become null/default
+    PATCH → send ONLY fields to change; others untouched
+
+  POST vs PUT:
+    POST /users        → server assigns ID  (creates new)
+    PUT  /users/42     → client specifies ID (full replace)
+
+  IDEMPOTENCY IN PRACTICE:
+    GET /users/1      → 200 OK always
+    DELETE /users/1   → 204 first call, 404 after (still idempotent — same effect)
+    POST /orders      → each call creates a NEW order (NOT idempotent)
+
+  SAFE POST PATTERN (Idempotency-Key):
+    POST /orders
+    Idempotency-Key: uuid-abc-123
+    → Server checks if key already processed → returns same response
+    → Prevents duplicate orders on network retry
+*/`}]
+    },
+    {
+      q: "Complete HTTP Status Code reference for REST APIs",
+      badge: "badge-concept",
+      note: "Wrong status codes are a common mistake. Use them precisely — they tell clients exactly what happened.",
+      variants: [
+        {l:"2xx Success codes", c:
+`// 200 OK          – GET, PUT, PATCH succeeded with response body
+// 201 Created      – POST created a new resource
+//                    Include Location: /api/users/42 header
+// 202 Accepted     – async operation started, not yet complete
+// 204 No Content   – DELETE succeeded, no body to return
+// 206 Partial      – Range request (streaming / file download)
+
+@PostMapping("/users")
+public ResponseEntity<UserResponse> create(@RequestBody @Valid UserRequest req) {
+    UserResponse user = userService.create(req);
+    URI location = ServletUriComponentsBuilder
+        .fromCurrentRequest()
+        .path("/{id}")
+        .buildAndExpand(user.getId())
+        .toUri();
+    return ResponseEntity.created(location).body(user); // 201 + Location header
+}
+
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> delete(@PathVariable Long id) {
+    userService.delete(id);
+    return ResponseEntity.noContent().build(); // 204
+}
+
+@PostMapping("/reports/generate")
+public ResponseEntity<Map<String,String>> generateReport(@RequestBody ReportRequest req) {
+    String jobId = reportService.startAsync(req);
+    return ResponseEntity.accepted()
+        .body(Map.of("jobId", jobId, "status", "PROCESSING")); // 202
+}`},
+        {l:"4xx Client error codes", c:
+`// 400 Bad Request         – malformed JSON, validation failed
+// 401 Unauthorized         – missing/invalid authentication token
+// 403 Forbidden            – authenticated but lacks permission
+// 404 Not Found            – resource doesn't exist
+// 405 Method Not Allowed   – GET on POST-only endpoint
+// 409 Conflict             – duplicate email, version mismatch (optimistic lock)
+// 410 Gone                 – resource permanently deleted
+// 415 Unsupported Media    – sent XML when only JSON accepted
+// 422 Unprocessable Entity – JSON valid but semantically wrong
+// 429 Too Many Requests    – rate limit exceeded
+
+// Real scenario: 401 vs 403 difference
+// User not logged in → 401 (tell them to authenticate)
+// User logged in but not ADMIN → 403 (they ARE authenticated, just not authorized)
+
+// Real scenario: 400 vs 422
+// 400 → "your JSON is broken / missing required field"
+// 422 → "your JSON is valid but end_date is before start_date"
+
+// 409 in optimistic locking:
+@PutMapping("/{id}")
+public ResponseEntity<Product> update(@PathVariable Long id,
+                                      @RequestBody ProductRequest req) {
+    try {
+        return ResponseEntity.ok(productService.update(id, req));
+    } catch (ObjectOptimisticLockingFailureException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(null); // 409 – someone else updated it first
+    }
+}`},
+        {l:"5xx Server error codes", c:
+`// 500 Internal Server Error  – unhandled exception on server
+// 501 Not Implemented         – endpoint defined but not built yet
+// 502 Bad Gateway             – gateway got invalid response from upstream
+// 503 Service Unavailable     – server overloaded or in maintenance
+// 504 Gateway Timeout         – upstream didn't respond in time
+
+// NEVER expose stack traces in 500 responses in production!
+// Bad:
+{ "error": "NullPointerException at UserService.java:142" }
+
+// Good:
+{
+  "status": 500,
+  "message": "An unexpected error occurred. Reference: ERR-2024-abc123",
+  "timestamp": "2024-01-15T09:30:00Z"
+}
+
+// 503 with Retry-After header:
+return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+    .header("Retry-After", "30")   // try again in 30 seconds
+    .body(errorResponse);`}
+      ]
+    },
+    {
+      q: "Important HTTP headers every REST developer must know",
+      badge: "badge-concept",
+      variants: [{l:"Request and response headers reference", c:
+`/*
+  REQUEST HEADERS:
+  ─────────────────────────────────────────────────────
+  Content-Type: application/json       → body format sent by client
+  Accept: application/json             → format client expects back
+  Authorization: Bearer eyJ...         → JWT token
+  If-None-Match: "abc123"              → conditional GET (ETag)
+  If-Modified-Since: Mon, 1 Jan 2024   → conditional GET (date)
+  Accept-Language: en-US, hi;q=0.9    → preferred language
+  X-Request-ID: uuid-123               → correlation ID for tracing
+  Idempotency-Key: uuid-456            → safe POST retry
+
+  RESPONSE HEADERS:
+  ─────────────────────────────────────────────────────
+  Content-Type: application/json       → body format in response
+  Location: /api/users/42             → URL of new resource (201)
+  ETag: "abc123"                       → version fingerprint for caching
+  Cache-Control: max-age=3600         → cache for 1 hour
+  Cache-Control: no-store, no-cache   → never cache (sensitive data)
+  Retry-After: 60                      → seconds to wait (429/503)
+  X-RateLimit-Limit: 100              → max requests per window
+  X-RateLimit-Remaining: 45           → remaining requests
+  X-RateLimit-Reset: 1705312800       → unix time when limit resets
+  Access-Control-Allow-Origin: *      → CORS policy
+  Strict-Transport-Security: ...      → HTTPS enforcement
+
+  // Adding custom headers in Spring Boot:
+  @GetMapping("/{id}")
+  public ResponseEntity<Product> get(@PathVariable Long id) {
+      Product p = service.findById(id);
+      return ResponseEntity.ok()
+          .eTag(String.valueOf(p.getVersion()))
+          .header("X-Request-ID", UUID.randomUUID().toString())
+          .header("Cache-Control", "max-age=300")
+          .body(p);
+  }
+*/`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  3. URI DESIGN & VERSIONING
+// ═══════════════════════════════════════════════════════
+{
+  title: "URI Design & API Versioning",
+  qs: [
+    {
+      q: "What are the best practices for REST URI / resource naming?",
+      badge: "badge-design",
+      note: "URIs identify nouns (resources), not verbs (actions). HTTP method IS the verb.",
+      variants: [{l:"URI naming rules with examples", c:
+`/*
+  RULES:
+  1. Use NOUNS not verbs in URIs
+  2. Use PLURAL for collections
+  3. Use lowercase + hyphens (not underscores or camelCase)
+  4. Use hierarchical structure for relationships
+  5. Never put version in a path if using headers/params for versioning
+  6. Keep URIs stable — changing them breaks clients
+
+  BAD  →  GOOD
+  ──────────────────────────────────────────────────────
+  /getUser/1           → /users/1
+  /createOrder         → POST /orders
+  /deleteUser?id=1     → DELETE /users/1
+  /user_profile/42     → /user-profiles/42
+  /userOrders/1        → /users/1/orders
+  /getActiveProducts   → GET /products?status=active
+  /updateUserAddress   → PATCH /users/1/address
+
+  RESOURCE HIERARCHY:
+  GET    /users                        → list all users
+  POST   /users                        → create user
+  GET    /users/42                     → get user 42
+  PUT    /users/42                     → replace user 42
+  PATCH  /users/42                     → partial update user 42
+  DELETE /users/42                     → delete user 42
+  GET    /users/42/orders              → orders belonging to user 42
+  GET    /users/42/orders/7            → specific order of user 42
+  POST   /users/42/orders/7/cancel     → action (exception to noun rule)
+
+  FILTERING / SEARCHING / SORTING (use query params):
+  GET /products?category=laptop&brand=dell
+  GET /products?minPrice=1000&maxPrice=5000
+  GET /products?sort=price&order=asc
+  GET /products?search=gaming+laptop
+  GET /products?page=2&size=20
+*/`}]
+    },
+    {
+      q: "What are the different API versioning strategies and which is best?",
+      badge: "badge-design",
+      note: "Versioning is mandatory in enterprise APIs. Choosing wrong strategy causes maintenance headaches.",
+      variants: [
+        {l:"Strategy 1: URI Path versioning", c:
+`// GET /api/v1/users/42
+// GET /api/v2/users/42
+
+@RestController
+@RequestMapping("/api/v1/users")
+public class UserControllerV1 {
+    @GetMapping("/{id}")
+    public UserResponseV1 getUser(@PathVariable Long id) {
+        return userService.findV1(id);
+    }
+}
+
+@RestController
+@RequestMapping("/api/v2/users")
+public class UserControllerV2 {
+    @GetMapping("/{id}")
+    public UserResponseV2 getUser(@PathVariable Long id) {
+        return userService.findV2(id); // richer response with new fields
+    }
+}
+
+// PROS: Simple, visible in URL, easy to test in browser, easy to route
+// CONS: URI should identify resource, not version (purists dislike it)
+// VERDICT: Most widely used in real-world enterprise APIs`},
+        {l:"Strategy 2: Request Header versioning", c:
+`// GET /api/users/42
+// Header: API-Version: 2
+
+@GetMapping("/{id}")
+public ResponseEntity<Object> getUser(
+        @PathVariable Long id,
+        @RequestHeader(value = "API-Version", defaultValue = "1") String version) {
+    if ("2".equals(version)) {
+        return ResponseEntity.ok(userService.findV2(id));
+    }
+    return ResponseEntity.ok(userService.findV1(id));
+}
+// PROS: Clean URLs, resource URI stays stable
+// CONS: Not visible in browser, harder to test, caching issues`},
+        {l:"Strategy 3: Accept header (Content Negotiation)", c:
+`// GET /api/users/42
+// Accept: application/vnd.myapp.v2+json
+
+@GetMapping(value = "/{id}", produces = "application/vnd.myapp.v1+json")
+public UserResponseV1 getUserV1(@PathVariable Long id) {
+    return userService.findV1(id);
+}
+
+@GetMapping(value = "/{id}", produces = "application/vnd.myapp.v2+json")
+public UserResponseV2 getUserV2(@PathVariable Long id) {
+    return userService.findV2(id);
+}
+// PROS: Purest REST approach (content negotiation)
+// CONS: Complex to implement and test, poor developer experience`},
+        {l:"Strategy 4: Query parameter versioning", c:
+`// GET /api/users/42?version=2
+
+@GetMapping("/{id}")
+public ResponseEntity<Object> getUser(
+        @PathVariable Long id,
+        @RequestParam(defaultValue = "1") int version) {
+    return ResponseEntity.ok(
+        version == 2 ? userService.findV2(id) : userService.findV1(id));
+}
+// PROS: Easy to implement and test
+// CONS: Query params should be for filtering not versioning
+// VERDICT: Avoid — use path versioning instead`}
+      ]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  4. REQUEST / RESPONSE DESIGN
+// ═══════════════════════════════════════════════════════
+{
+  title: "Request & Response Design",
+  qs: [
+    {
+      q: "How do you design a standard API error response format?",
+      badge: "badge-design",
+      note: "Consistent error format across all endpoints is critical for consumer-grade enterprise APIs.",
+      variants: [
+        {l:"Standard error response DTO + GlobalExceptionHandler", c:
+`// Error Response DTO
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ApiError {
+    private int status;
+    private String error;          // HTTP status text
+    private String message;        // human-readable message
+    private String path;           // request path
+    private String timestamp;      // ISO-8601
+    private String traceId;        // for log correlation
+    private List<FieldError> errors; // validation errors
+
+    @Data
+    @AllArgsConstructor
+    public static class FieldError {
+        private String field;
+        private String message;
+        private Object rejectedValue;
+    }
+}
+
+// Global Exception Handler
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(
+            ResourceNotFoundException ex, HttpServletRequest req) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidation(
+            MethodArgumentNotValidException ex, HttpServletRequest req) {
+        List<ApiError.FieldError> fieldErrors = ex.getBindingResult()
+            .getFieldErrors().stream()
+            .map(e -> new ApiError.FieldError(e.getField(),
+                e.getDefaultMessage(), e.getRejectedValue()))
+            .collect(Collectors.toList());
+
+        ApiError err = build(HttpStatus.BAD_REQUEST, "Validation failed", req).getBody();
+        err.setErrors(fieldErrors);
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleForbidden(HttpServletRequest req) {
+        return build(HttpStatus.FORBIDDEN, "Access denied", req);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleGeneral(Exception ex, HttpServletRequest req) {
+        log.error("Unhandled exception", ex);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR,
+            "An unexpected error occurred", req);
+    }
+
+    private ResponseEntity<ApiError> build(HttpStatus status, String msg,
+                                            HttpServletRequest req) {
+        ApiError err = new ApiError();
+        err.setStatus(status.value());
+        err.setError(status.getReasonPhrase());
+        err.setMessage(msg);
+        err.setPath(req.getRequestURI());
+        err.setTimestamp(Instant.now().toString());
+        err.setTraceId(MDC.get("traceId")); // from Sleuth/Micrometer
+        return ResponseEntity.status(status).body(err);
+    }
+}`}
+      ]
+    },
+    {
+      q: "How do you implement pagination, filtering, sorting and search?",
+      badge: "badge-impl",
+      note: "GET /products?page=0&size=20&sort=price,asc&category=laptop&search=dell — all at once.",
+      variants: [
+        {l:"Pageable with filtering and sorting", c:
+`// Request params: ?page=0&size=20&sort=name,asc&category=laptop&minPrice=500
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    @GetMapping
+    public ResponseEntity<Page<ProductResponse>> getProducts(
+            @RequestParam(defaultValue = "0")   int page,
+            @RequestParam(defaultValue = "20")  int size,
+            @RequestParam(defaultValue = "id")  String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(required = false)     String category,
+            @RequestParam(required = false)     Double minPrice,
+            @RequestParam(required = false)     Double maxPrice,
+            @RequestParam(required = false)     String search) {
+
+        Sort sort = direction.equalsIgnoreCase("desc")
+            ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), sort);
+
+        ProductFilter filter = ProductFilter.builder()
+            .category(category).minPrice(minPrice)
+            .maxPrice(maxPrice).search(search).build();
+
+        Page<ProductResponse> result = productService.findAll(filter, pageable);
+        return ResponseEntity.ok(result);
+    }
+}
+
+// Repository using Specification (dynamic queries)
+@Repository
+public interface ProductRepository extends JpaRepository<Product, Long>,
+                                            JpaSpecificationExecutor<Product> {}
+
+// Specification builder
+public class ProductSpecification {
+    public static Specification<Product> filter(ProductFilter f) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (f.getCategory() != null)
+                predicates.add(cb.equal(root.get("category"), f.getCategory()));
+            if (f.getMinPrice() != null)
+                predicates.add(cb.ge(root.get("price"), f.getMinPrice()));
+            if (f.getMaxPrice() != null)
+                predicates.add(cb.le(root.get("price"), f.getMaxPrice()));
+            if (f.getSearch() != null)
+                predicates.add(cb.like(cb.lower(root.get("name")),
+                    "%" + f.getSearch().toLowerCase() + "%"));
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+}`},
+        {l:"Standard paginated response envelope", c:
+`// Standard API Envelope (never return raw Page<T> — wrap it)
+@Data
+@Builder
+public class PagedResponse<T> {
+    private List<T> content;
+    private int page;
+    private int size;
+    private long totalElements;
+    private int totalPages;
+    private boolean first;
+    private boolean last;
+    private boolean hasNext;
+    private boolean hasPrevious;
+    private String nextPageUrl;
+    private String prevPageUrl;
+
+    public static <T> PagedResponse<T> from(Page<T> page, HttpServletRequest req) {
+        String baseUrl = req.getRequestURL() + "?" +
+            req.getQueryString().replaceAll("page=\\d+", "");
+        return PagedResponse.<T>builder()
+            .content(page.getContent())
+            .page(page.getNumber())
+            .size(page.getSize())
+            .totalElements(page.getTotalElements())
+            .totalPages(page.getTotalPages())
+            .first(page.isFirst()).last(page.isLast())
+            .hasNext(page.hasNext()).hasPrevious(page.hasPrevious())
+            .nextPageUrl(page.hasNext() ? baseUrl + "page=" + (page.getNumber() + 1) : null)
+            .prevPageUrl(page.hasPrevious() ? baseUrl + "page=" + (page.getNumber() - 1) : null)
+            .build();
+    }
+}
+// Response:
+// { "content":[...], "page":0, "size":20, "totalElements":150,
+//   "totalPages":8, "hasNext":true, "nextPageUrl":"/api/products?page=1..." }`}
+      ]
+    },
+    {
+      q: "How do you implement content negotiation (JSON, XML, CSV responses)?",
+      badge: "badge-impl",
+      variants: [{l:"Content negotiation in Spring Boot", c:
+`// pom.xml: add jackson-dataformat-xml for XML support
+
+@RestController
+@RequestMapping("/api/reports")
+public class ReportController {
+
+    // Single endpoint — responds with JSON or XML based on Accept header
+    @GetMapping(value = "/users",
+        produces = { MediaType.APPLICATION_JSON_VALUE,
+                     MediaType.APPLICATION_XML_VALUE })
+    public List<UserResponse> getUsers() {
+        return userService.findAll();
+    }
+
+    // CSV download
+    @GetMapping(value = "/users/export", produces = "text/csv")
+    public ResponseEntity<byte[]> exportCsv() throws IOException {
+        List<UserResponse> users = userService.findAll();
+        StringBuilder csv = new StringBuilder("id,name,email\n");
+        users.forEach(u -> csv.append(u.getId()).append(",")
+            .append(u.getName()).append(",").append(u.getEmail()).append("\n"));
+        byte[] bytes = csv.toString().getBytes(StandardCharsets.UTF_8);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=users.csv")
+            .header(HttpHeaders.CONTENT_TYPE, "text/csv")
+            .body(bytes);
+    }
+
+    // PDF response
+    @GetMapping(value = "/invoice/{id}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> getPdf(@PathVariable Long id) {
+        byte[] pdf = invoiceService.generatePdf(id);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                "inline; filename=invoice-" + id + ".pdf")
+            .body(pdf);
+    }
+}
+// Test: curl -H "Accept: application/xml" http://localhost:8080/api/reports/users`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  5. SECURITY — JWT, OAuth2, HTTPS
+// ═══════════════════════════════════════════════════════
+{
+  title: "REST API Security — JWT, OAuth2, HTTPS",
+  qs: [
+    {
+      q: "How does JWT authentication work end-to-end in a REST API?",
+      badge: "badge-security",
+      note: "JWT = JSON Web Token. Three parts: Header.Payload.Signature — all Base64 encoded.",
+      variants: [
+        {l:"JWT structure and complete auth flow", c:
+`/*
+  JWT STRUCTURE:
+  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9   ← Header  (algorithm + type)
+  .eyJzdWIiOiIxMjM0NSIsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTcwNTMxMjgwMCwiZXhwIjoxNzA1Mzk5MjAwfQ
+                                           ← Payload (claims: sub, email, role, iat, exp)
+  .SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                                           ← Signature (HMAC-SHA256 of header+payload)
+
+  FULL AUTH FLOW:
+  1. POST /api/auth/login { email, password }
+  2. Server verifies credentials against DB
+  3. Server generates JWT with claims (userId, email, roles, expiry)
+  4. Client stores JWT (HttpOnly cookie preferred, or localStorage)
+  5. Client sends: Authorization: Bearer <token> on every request
+  6. JWT Filter intercepts → validates signature → sets SecurityContext
+  7. Controller executes with authenticated user context
+
+  CLAIMS BEST PRACTICES:
+  - Include: sub (userId), email, roles, iat, exp
+  - Do NOT include: password, credit card, sensitive PII
+  - Use short expiry for access token (15min-1hr)
+  - Use refresh token (7-30 days) to get new access token silently
+
+  REFRESH TOKEN FLOW:
+  1. Access token expires → client gets 401
+  2. Client sends: POST /api/auth/refresh { refreshToken }
+  3. Server validates refresh token from DB
+  4. Returns new access token (+ optionally new refresh token)
+  5. Client retries original request with new token
+*/`},
+        {l:"Complete JWT implementation in Spring Boot", c:
+`// 1. JwtService
+@Service
+public class JwtService {
+    @Value("\${jwt.secret}") private String secret;
+    @Value("\${jwt.access-expiry:900000}") private long accessExpiry;   // 15 min
+    @Value("\${jwt.refresh-expiry:604800000}") private long refreshExpiry; // 7 days
+
+    public String generateAccessToken(UserDetails user) {
+        Map<String, Object> claims = new HashMap<>();
+        if (user instanceof CustomUserDetails u) {
+            claims.put("userId", u.getId());
+            claims.put("roles", u.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        }
+        return buildToken(claims, user.getUsername(), accessExpiry);
+    }
+
+    public String generateRefreshToken(String username) {
+        return buildToken(new HashMap<>(), username, refreshExpiry);
+    }
+
+    private String buildToken(Map<String,Object> claims, String subject, long expiry) {
+        return Jwts.builder()
+            .setClaims(claims).setSubject(subject)
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + expiry))
+            .signWith(getSignKey(), SignatureAlgorithm.HS256)
+            .compact();
+    }
+
+    public boolean isTokenValid(String token, UserDetails user) {
+        return extractUsername(token).equals(user.getUsername()) && !isExpired(token);
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+    private boolean isExpired(String token) {
+        return extractClaim(token, Claims::getExpiration).before(new Date());
+    }
+    private <T> T extractClaim(String token, Function<Claims,T> resolver) {
+        return resolver.apply(Jwts.parserBuilder()
+            .setSigningKey(getSignKey()).build()
+            .parseClaimsJws(token).getBody());
+    }
+    private Key getSignKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+    }
+}
+
+// 2. JWT Filter
+@Component
+public class JwtAuthFilter extends OncePerRequestFilter {
+    @Autowired private JwtService jwtService;
+    @Autowired private UserDetailsService uds;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req,
+                                    HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            chain.doFilter(req, res); return;
+        }
+        String token = authHeader.substring(7);
+        String username = jwtService.extractUsername(token);
+
+        if (username != null && SecurityContextHolder.getContext()
+                .getAuthentication() == null) {
+            UserDetails ud = uds.loadUserByUsername(username);
+            if (jwtService.isTokenValid(token, ud)) {
+                var auth = new UsernamePasswordAuthenticationToken(
+                    ud, null, ud.getAuthorities());
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+        }
+        chain.doFilter(req, res);
+    }
+}`}
+      ]
+    },
+    {
+      q: "What is OAuth2 and how does it differ from JWT auth in REST APIs?",
+      badge: "badge-security",
+      note: "OAuth2 is an authorization FRAMEWORK. JWT is a token FORMAT. They are often used together.",
+      variants: [{l:"OAuth2 flows and Spring Boot Resource Server", c:
+`/*
+  OAUTH2 GRANT TYPES (flows):
+  ──────────────────────────────────────────────────────────────────
+  Authorization Code  → Web apps with backend (most secure)
+  Client Credentials  → Server-to-server (microservices, no user)
+  Implicit            → DEPRECATED (was for SPAs)
+  Password            → DEPRECATED (was for trusted apps)
+  Device Code         → Smart TVs, CLI tools
+
+  ROLES:
+  Resource Owner  → the USER who owns the data
+  Client          → the APP requesting access (your mobile app)
+  Auth Server     → issues tokens (Keycloak, Okta, Auth0, Google)
+  Resource Server → your Spring Boot REST API
+
+  AUTHORIZATION CODE FLOW (most common):
+  1. User clicks "Login with Google" on your app
+  2. Redirect to Google Auth Server with: client_id, redirect_uri, scope
+  3. User logs in to Google and consents
+  4. Google redirects back to: /callback?code=ABC123
+  5. Your backend exchanges code for access_token + refresh_token
+  6. access_token used to call resource server (your API)
+  7. Resource server validates token against Auth Server
+
+  SCOPES define what access the token grants:
+  read:profile, write:orders, admin:users
+*/
+
+// Spring Boot Resource Server (validates tokens from Auth Server)
+// pom.xml: spring-boot-starter-oauth2-resource-server
+
+@Configuration
+@EnableWebSecurity
+public class ResourceServerConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .oauth2ResourceServer(oauth2 ->
+                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter())))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/admin/**").hasAuthority("SCOPE_admin:all")
+                .requestMatchers(HttpMethod.GET).hasAuthority("SCOPE_read")
+                .anyRequest().hasAuthority("SCOPE_write"))
+            .sessionManagement(s ->
+                s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        return http.build();
+    }
+}
+# application.properties
+# spring.security.oauth2.resourceserver.jwt.issuer-uri=https://auth.example.com`}]
+    },
+    {
+      q: "How do you implement Rate Limiting in a REST API?",
+      badge: "badge-security",
+      note: "Rate limiting prevents abuse, DoS attacks, and ensures fair usage. Return 429 with Retry-After header.",
+      variants: [
+        {l:"Rate limiting with Bucket4j + Redis", c:
+`// pom.xml: bucket4j-spring-boot-starter, spring-boot-starter-data-redis
+
+@Component
+public class RateLimitFilter extends OncePerRequestFilter {
+
+    @Autowired private RedisTemplate<String, String> redis;
+    private static final int MAX_REQUESTS = 100;
+    private static final int WINDOW_SECONDS = 60;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req,
+                                    HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
+
+        String clientKey = resolveClientKey(req);
+        String redisKey = "rate_limit:" + clientKey;
+
+        Long currentCount = redis.opsForValue().increment(redisKey);
+        if (currentCount == 1) {
+            redis.expire(redisKey, Duration.ofSeconds(WINDOW_SECONDS));
+        }
+
+        long ttl = Optional.ofNullable(redis.getExpire(redisKey)).orElse(60L);
+        res.setHeader("X-RateLimit-Limit", String.valueOf(MAX_REQUESTS));
+        res.setHeader("X-RateLimit-Remaining",
+            String.valueOf(Math.max(0, MAX_REQUESTS - currentCount)));
+        res.setHeader("X-RateLimit-Reset", String.valueOf(
+            Instant.now().plusSeconds(ttl).getEpochSecond()));
+
+        if (currentCount > MAX_REQUESTS) {
+            res.setHeader("Retry-After", String.valueOf(ttl));
+            res.setStatus(429);
+            res.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            res.getWriter().write(
+                "{\"status\":429,\"message\":\"Rate limit exceeded. Try after "
+                + ttl + " seconds.\"}");
+            return;
+        }
+        chain.doFilter(req, res);
+    }
+
+    private String resolveClientKey(HttpServletRequest req) {
+        // Rate limit by API key or authenticated user, fallback to IP
+        String apiKey = req.getHeader("X-API-Key");
+        if (apiKey != null) return "key:" + apiKey;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) return "user:" + auth.getName();
+        String ip = req.getHeader("X-Forwarded-For");
+        return "ip:" + (ip != null ? ip.split(",")[0].trim() : req.getRemoteAddr());
+    }
+}`},
+        {l:"Tiered rate limiting (plan-based)", c:
+`/*
+  TIERED RATE LIMITS (enterprise pattern):
+  Free Plan    → 100 req/min
+  Basic Plan   → 1000 req/min
+  Premium Plan → 10000 req/min
+
+  Implementation approach:
+  1. API key carries plan info (stored in DB or JWT claim)
+  2. Rate limit filter looks up plan → applies corresponding limit
+  3. Different limits per endpoint:
+     GET /api/products → 1000/min (cheap read)
+     POST /api/orders  → 100/min  (expensive write)
+     POST /api/reports → 10/min   (very expensive)
+*/
+@Component
+public class TieredRateLimitFilter extends OncePerRequestFilter {
+
+    private final Map<String, Integer> planLimits = Map.of(
+        "FREE", 100, "BASIC", 1000, "PREMIUM", 10000);
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req,
+                                    HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
+        String apiKey = req.getHeader("X-API-Key");
+        ApiKeyDetails keyDetails = apiKeyService.validate(apiKey);
+        int limit = planLimits.getOrDefault(keyDetails.getPlan(), 100);
+        // ... apply limit with redis
+    }
+}`}
+      ]
+    },
+    {
+      q: "How do you implement API Key authentication?",
+      badge: "badge-security",
+      variants: [{l:"API Key filter + management", c:
+`// API Key stored in DB with metadata
+@Entity
+public class ApiKey {
+    @Id private Long id;
+    private String keyHash;      // BCrypt hashed key
+    private String clientName;
+    private String plan;         // FREE, BASIC, PREMIUM
+    private boolean active;
+    private LocalDateTime expiresAt;
+    private List<String> allowedIps; // IP whitelist
+    private long requestCount;
+}
+
+// Filter to validate API Key
+@Component
+@Order(1)
+public class ApiKeyAuthFilter extends OncePerRequestFilter {
+
+    @Autowired private ApiKeyRepository apiKeyRepo;
+    @Autowired private PasswordEncoder encoder;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req,
+                                    HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
+        String apiKey = req.getHeader("X-API-Key");
+
+        if (apiKey == null) { chain.doFilter(req, res); return; }
+
+        Optional<ApiKey> found = apiKeyRepo.findAll().stream()
+            .filter(k -> k.isActive() && encoder.matches(apiKey, k.getKeyHash()))
+            .findFirst();
+
+        if (found.isEmpty() || found.get().getExpiresAt().isBefore(LocalDateTime.now())) {
+            res.setStatus(401);
+            res.getWriter().write("{\"message\":\"Invalid or expired API key\"}");
+            return;
+        }
+
+        // Set Spring Security context
+        ApiKey key = found.get();
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+            key.getClientName(), null,
+            List.of(new SimpleGrantedAuthority("ROLE_" + key.getPlan())));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        // Async update request count
+        applicationEventPublisher.publishEvent(new ApiKeyUsedEvent(key.getId()));
+        chain.doFilter(req, res);
+    }
+}`}]
+    },
+    {
+      q: "How do you configure CORS in a Spring Boot REST API?",
+      badge: "badge-security",
+      note: "CORS = Cross-Origin Resource Sharing. Browser enforced. Never configure '*' in production with credentials.",
+      variants: [{l:"CORS configuration options", c:
+`// Option 1: Global CORS config (recommended)
+@Configuration
+public class CorsConfig {
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(
+            "https://app.example.com",
+            "https://admin.example.com"));
+        config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization","Content-Type","X-Request-ID"));
+        config.setExposedHeaders(List.of("X-RateLimit-Remaining","Location"));
+        config.setAllowCredentials(true);   // needed for cookies
+        config.setMaxAge(3600L);            // preflight cache: 1 hour
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", config);
+        return source;
+    }
+}
+// Apply in SecurityFilterChain:
+// http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+// Option 2: Controller-level annotation
+@CrossOrigin(origins = "https://app.example.com",
+             methods = {RequestMethod.GET, RequestMethod.POST})
+@RestController
+public class ProductController { }
+
+// Option 3: Method-level
+@CrossOrigin(origins = "*")
+@GetMapping("/public/products")
+public List<Product> getPublicProducts() { ... }
+
+// CORS PREFLIGHT:
+// Browser sends OPTIONS before actual request when:
+// - Cross-origin request with non-simple headers (Authorization)
+// - Non-simple methods (PUT, DELETE, PATCH)
+// Server must respond 200 to OPTIONS for actual request to proceed`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  6. CACHING STRATEGIES
+// ═══════════════════════════════════════════════════════
+{
+  title: "Caching Strategies",
+  qs: [
+    {
+      q: "How do you implement HTTP caching with ETag and Cache-Control?",
+      badge: "badge-perf",
+      note: "HTTP caching can eliminate 50-80% of server requests. ETag prevents stale data.",
+      variants: [{l:"ETag + Conditional GET implementation", c:
+`/*
+  CACHE FLOW:
+  1. Client: GET /products/1 → Server: 200 OK + ETag: "v42" + Cache-Control: max-age=300
+  2. Client caches response with ETag
+  3. 5 min later: GET /products/1 + If-None-Match: "v42"
+  4a. Not changed → Server: 304 Not Modified (no body) ← bandwidth saved!
+  4b. Changed     → Server: 200 OK + new body + ETag: "v43"
+*/
+
+@GetMapping("/{id}")
+public ResponseEntity<Product> getProduct(@PathVariable Long id,
+                                           HttpServletRequest request) {
+    Product product = productService.findById(id);
+    String etag = "\"" + product.getVersion() + "-" + product.getUpdatedAt().toString() + "\"";
+
+    // Check If-None-Match header
+    String ifNoneMatch = request.getHeader("If-None-Match");
+    if (etag.equals(ifNoneMatch)) {
+        return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+            .eTag(etag).build();  // 304 — no body sent
+    }
+
+    return ResponseEntity.ok()
+        .eTag(etag)
+        .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES)
+            .cachePublic()
+            .mustRevalidate())
+        .body(product);
+}
+
+// Different cache policies:
+// Static data    → Cache-Control: public, max-age=86400 (1 day)
+// User data      → Cache-Control: private, max-age=300
+// Search results → Cache-Control: public, max-age=60, stale-while-revalidate=30
+// POST response  → Cache-Control: no-store
+// Auth endpoints → Cache-Control: no-store, no-cache`}]
+    },
+    {
+      q: "How do you implement multi-level caching (Local + Redis)?",
+      badge: "badge-perf",
+      note: "L1 = in-process Caffeine cache (nanoseconds). L2 = Redis (milliseconds). L3 = Database.",
+      variants: [{l:"Two-level cache with Caffeine + Redis", c:
+`// pom.xml: spring-boot-starter-cache, caffeine, spring-boot-starter-data-redis
+
+@Configuration
+@EnableCaching
+public class CacheConfig {
+
+    // L1: Local in-memory cache (fast, per instance)
+    @Bean
+    public CacheManager caffeineCacheManager() {
+        CaffeineCacheManager mgr = new CaffeineCacheManager();
+        mgr.setCaffeine(Caffeine.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .maximumSize(1000)
+            .recordStats());
+        return mgr;
+    }
+
+    // L2: Redis cache (shared across instances)
+    @Bean
+    public RedisCacheManager redisCacheManager(RedisConnectionFactory factory) {
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+            .entryTtl(Duration.ofMinutes(30))
+            .serializeValuesWith(
+                RedisSerializationContext.SerializationPair.fromSerializer(
+                    new GenericJackson2JsonRedisSerializer()));
+        return RedisCacheManager.builder(factory)
+            .cacheDefaults(config).build();
+    }
+}
+
+@Service
+public class ProductService {
+    @Autowired private ProductRepository repo;
+    @Autowired private RedisCacheManager redis;
+    @Autowired private CaffeineCacheManager local;
+
+    public Product findById(Long id) {
+        // Check L1 (Caffeine)
+        Cache l1 = local.getCache("products");
+        Product cached = l1 != null ? l1.get(id, Product.class) : null;
+        if (cached != null) return cached; // L1 hit
+
+        // Check L2 (Redis)
+        Cache l2 = redis.getCache("products");
+        cached = l2 != null ? l2.get(id, Product.class) : null;
+        if (cached != null) {
+            if (l1 != null) l1.put(id, cached); // promote to L1
+            return cached; // L2 hit
+        }
+
+        // L3: Database
+        Product product = repo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Product", id));
+        if (l1 != null) l1.put(id, product);
+        if (l2 != null) l2.put(id, product);
+        return product;
+    }
+
+    @CacheEvict(value = "products", key = "#id", cacheManager = "redisCacheManager")
+    public void evict(Long id) {
+        local.getCache("products").evict(id);
+    }
+}`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  7. PERFORMANCE & OPTIMIZATION
+// ═══════════════════════════════════════════════════════
+{
+  title: "Performance & Optimization",
+  qs: [
+    {
+      q: "What causes N+1 query problem and how do you fix it in REST APIs?",
+      badge: "badge-perf",
+      note: "N+1 is the #1 JPA performance killer in enterprise apps. Always check SQL logs in development.",
+      variants: [{l:"N+1 detection and all fix strategies", c:
+`/*
+  N+1 PROBLEM:
+  GET /api/orders → returns 100 orders
+  JPA executes: SELECT * FROM orders (1 query)
+  Then for each order's user: SELECT * FROM users WHERE id=? (100 queries)
+  Total = 101 queries for one API call!
+*/
+
+// DETECT: Enable SQL logging
+// spring.jpa.show-sql=true
+// spring.jpa.properties.hibernate.format_sql=true
+// logging.level.org.hibernate.type.descriptor.sql=TRACE
+
+// FIX 1: JOIN FETCH (JPQL)
+@Query("SELECT o FROM Order o JOIN FETCH o.user JOIN FETCH o.items WHERE o.status = :s")
+List<Order> findByStatusWithDetails(@Param("s") OrderStatus status);
+
+// FIX 2: EntityGraph (declarative)
+@EntityGraph(attributePaths = {"user", "items", "items.product"})
+List<Order> findByStatus(OrderStatus status);
+
+// FIX 3: @BatchSize (batch load related entities)
+@OneToMany(mappedBy = "order")
+@BatchSize(size = 30)  // fetches 30 items at once instead of 1 by 1
+private List<OrderItem> items;
+
+// FIX 4: Projections (only fetch what you need)
+public interface OrderSummary {
+    Long getId();
+    String getStatus();
+    String getUserName();   // user.name via Spring Data projection
+    Double getTotal();
+}
+List<OrderSummary> findProjectedByStatus(OrderStatus status);
+
+// FIX 5: Hibernate Statistics (measure before optimizing)
+// spring.jpa.properties.hibernate.generate_statistics=true
+// Logs total queries, cache hits etc. per request`}]
+    },
+    {
+      q: "How do you implement async processing for slow REST API endpoints?",
+      badge: "badge-perf",
+      note: "Long-running operations (>5s) should be async. Return 202 Accepted + polling URL immediately.",
+      variants: [{l:"Async job pattern with polling", c:
+`/*
+  PATTERN: Async + Polling
+  1. POST /api/reports  → 202 Accepted + { jobId, statusUrl }
+  2. GET  /api/jobs/{id} → 200 { status: "PROCESSING", progress: 45 }
+  3. GET  /api/jobs/{id} → 200 { status: "DONE", resultUrl: "..." }
+  4. GET  /api/reports/{id}/download → 200 (actual result)
+*/
+
+// Job entity
+@Entity
+public class AsyncJob {
+    @Id @GeneratedValue private Long id;
+    private String type;
+    @Enumerated(EnumType.STRING)
+    private JobStatus status; // QUEUED, PROCESSING, DONE, FAILED
+    private int progress;     // 0-100
+    private String resultPath;
+    private String errorMessage;
+    private LocalDateTime createdAt;
+}
+
+@RestController
+@RequestMapping("/api/reports")
+public class ReportController {
+
+    @Autowired private ReportService reportService;
+    @Autowired private AsyncJobService jobService;
+
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> generate(@RequestBody ReportRequest req) {
+        AsyncJob job = jobService.createJob("REPORT");
+        reportService.generateAsync(job.getId(), req); // @Async method
+
+        String statusUrl = "/api/jobs/" + job.getId();
+        return ResponseEntity.accepted().body(Map.of(
+            "jobId", job.getId(),
+            "status", "QUEUED",
+            "statusUrl", statusUrl,
+            "message", "Report generation started. Poll statusUrl for progress."));
+    }
+}
+
+// Service with @Async
+@Service
+public class ReportService {
+
+    @Async("reportExecutor")
+    public void generateAsync(Long jobId, ReportRequest req) {
+        jobService.updateStatus(jobId, JobStatus.PROCESSING, 0);
+        try {
+            // Step 1: fetch data (20%)
+            List<Data> data = dataService.fetch(req);
+            jobService.updateProgress(jobId, 20);
+
+            // Step 2: process (60%)
+            byte[] report = processor.process(data);
+            jobService.updateProgress(jobId, 60);
+
+            // Step 3: save (100%)
+            String path = storageService.save(report);
+            jobService.complete(jobId, path);
+        } catch (Exception e) {
+            jobService.fail(jobId, e.getMessage());
+        }
+    }
+}`}]
+    },
+    {
+      q: "How do you handle large file uploads and downloads efficiently?",
+      badge: "badge-perf",
+      variants: [{l:"Streaming multipart upload + chunked download", c:
+`// UPLOAD: stream directly to storage (no memory buffer)
+@PostMapping(value = "/files/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+public ResponseEntity<FileResponse> upload(
+        @RequestParam("file") MultipartFile file,
+        @RequestParam(required = false) String folder) throws IOException {
+
+    // Validate
+    if (file.getSize() > 100 * 1024 * 1024) // 100MB limit
+        throw new BadRequestException("File exceeds 100MB limit");
+
+    String allowed = "image/jpeg,image/png,application/pdf,text/csv";
+    if (!allowed.contains(file.getContentType()))
+        throw new BadRequestException("Unsupported file type: " + file.getContentType());
+
+    // Stream directly to S3 (never load entire file in memory)
+    String key = s3Service.uploadStream(
+        file.getInputStream(), file.getOriginalFilename(),
+        file.getContentType(), file.getSize());
+
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(new FileResponse(key, file.getOriginalFilename(), file.getSize()));
+}
+
+// DOWNLOAD: stream response (no memory buffer)
+@GetMapping("/files/{key}/download")
+public ResponseEntity<StreamingResponseBody> download(@PathVariable String key) {
+    S3ObjectMetadata meta = s3Service.getMetadata(key);
+
+    StreamingResponseBody body = outputStream -> {
+        try (InputStream in = s3Service.getStream(key)) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+                outputStream.flush(); // send chunk immediately
+            }
+        }
+    };
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + meta.getOriginalName() + "\"")
+        .header(HttpHeaders.CONTENT_TYPE, meta.getContentType())
+        .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(meta.getSize()))
+        .body(body);
+}
+
+# application.properties
+spring.servlet.multipart.max-file-size=100MB
+spring.servlet.multipart.max-request-size=110MB`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  8. IDEMPOTENCY & CONCURRENCY
+// ═══════════════════════════════════════════════════════
+{
+  title: "Idempotency, Concurrency & Consistency",
+  qs: [
+    {
+      q: "How do you implement idempotent POST APIs to prevent duplicate orders?",
+      badge: "badge-scenario",
+      note: "Network retries are inevitable. Without idempotency, a retry can create duplicate orders, charges, or emails.",
+      variants: [{l:"Idempotency key pattern with Redis", c:
+`/*
+  SCENARIO: User clicks "Place Order". Network drops. App retries.
+  Without idempotency → 2 orders created!
+  With idempotency → same order returned, no duplicate.
+*/
+
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+
+    @PostMapping
+    public ResponseEntity<OrderResponse> createOrder(
+            @RequestBody @Valid OrderRequest request,
+            @RequestHeader(value = "Idempotency-Key",
+                           required = false) String idempotencyKey) {
+
+        if (idempotencyKey != null) {
+            // Check if we already processed this key
+            Optional<OrderResponse> cached = idempotencyService.get(idempotencyKey);
+            if (cached.isPresent()) {
+                return ResponseEntity.ok()
+                    .header("Idempotent-Replayed", "true")
+                    .body(cached.get()); // return same response!
+            }
+        }
+
+        OrderResponse order = orderService.create(request);
+
+        if (idempotencyKey != null) {
+            // Store result for 24 hours
+            idempotencyService.store(idempotencyKey, order, Duration.ofHours(24));
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(order);
+    }
+}
+
+@Service
+public class IdempotencyService {
+    @Autowired private RedisTemplate<String, String> redis;
+    @Autowired private ObjectMapper objectMapper;
+
+    public <T> Optional<T> get(String key) {
+        String json = redis.opsForValue().get("idem:" + key);
+        if (json == null) return Optional.empty();
+        return Optional.of(objectMapper.readValue(json, OrderResponse.class));
+    }
+
+    public <T> void store(String key, T value, Duration ttl) {
+        redis.opsForValue().set("idem:" + key,
+            objectMapper.writeValueAsString(value), ttl);
+    }
+}`}]
+    },
+    {
+      q: "How do you handle concurrent updates using Optimistic and Pessimistic Locking?",
+      badge: "badge-scenario",
+      note: "Race condition: two users update the same product simultaneously — one update gets silently lost without locking.",
+      variants: [
+        {l:"Optimistic locking (high concurrency, low conflict)", c:
+`/*
+  USE CASE: Two managers update product price simultaneously.
+  With optimistic locking:
+  - Both read version=5
+  - Manager A saves → version becomes 6
+  - Manager B tries to save version=5 → 409 Conflict!
+*/
+
+@Entity
+public class Product {
+    @Id @GeneratedValue private Long id;
+    private String name;
+    private Double price;
+
+    @Version  // magic field — JPA auto-increments on every save
+    private Long version;
+}
+
+@RestController
+public class ProductController {
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductResponse> update(
+            @PathVariable Long id,
+            @RequestBody ProductRequest request) {
+        try {
+            ProductResponse updated = productService.update(id, request);
+            return ResponseEntity.ok(updated);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            // Tell client to refresh and retry with latest version
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .header("X-Conflict-Reason", "Resource was modified by another request")
+                .body(null);
+        }
+    }
+}
+// SQL generated: UPDATE product SET name=?, price=?, version=6
+//                WHERE id=? AND version=5  ← if version!=5, update fails`},
+        {l:"Pessimistic locking (low concurrency, high conflict)", c:
+`/*
+  USE CASE: Bank transfer — must prevent two simultaneous withdrawals
+  exceeding the balance.
+*/
+
+@Service
+@Transactional
+public class AccountService {
+
+    @Autowired private AccountRepository repo;
+
+    public TransferResponse transfer(Long fromId, Long toId, BigDecimal amount) {
+        // PESSIMISTIC_WRITE acquires SELECT FOR UPDATE — blocks other reads/writes
+        Account from = repo.findByIdWithLock(fromId);  // DB row is locked
+        Account to   = repo.findByIdWithLock(toId);
+
+        if (from.getBalance().compareTo(amount) < 0)
+            throw new InsufficientFundsException("Insufficient balance");
+
+        from.setBalance(from.getBalance().subtract(amount));
+        to.setBalance(to.getBalance().add(amount));
+
+        repo.save(from);
+        repo.save(to);
+        return new TransferResponse("SUCCESS", from.getBalance());
+    }
+}
+
+// Repository with pessimistic lock
+@Repository
+public interface AccountRepository extends JpaRepository<Account, Long> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM Account a WHERE a.id = :id")
+    Account findByIdWithLock(@Param("id") Long id);
+}`}
+      ]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  9. SCENARIO-BASED QUESTIONS
+// ═══════════════════════════════════════════════════════
+{
+  title: "Real-World Scenarios & Interview Problems",
+  qs: [
+    {
+      q: "SCENARIO: Design a REST API for a multi-tenant SaaS application",
+      badge: "badge-scenario",
+      note: "Multi-tenancy: single API serving multiple customers (tenants) with isolated data.",
+      variants: [{l:"Tenant isolation strategy + implementation", c:
+`/*
+  STRATEGIES:
+  1. Schema-per-tenant  → separate DB schema per tenant (strong isolation)
+  2. DB-per-tenant      → separate DB per tenant (strongest, expensive)
+  3. Row-level-security → single DB, tenantId column on every table (most common)
+
+  STRATEGY 3 IMPLEMENTATION (Row-level security):
+*/
+
+// 1. Tenant context holder (ThreadLocal)
+public class TenantContext {
+    private static final ThreadLocal<String> CURRENT_TENANT = new ThreadLocal<>();
+    public static void setTenant(String tenantId) { CURRENT_TENANT.set(tenantId); }
+    public static String getTenant() { return CURRENT_TENANT.get(); }
+    public static void clear() { CURRENT_TENANT.remove(); }
+}
+
+// 2. Filter to extract tenant from JWT or subdomain
+@Component
+@Order(2)
+public class TenantFilter extends OncePerRequestFilter {
+    @Override
+    protected void doFilterInternal(HttpServletRequest req,
+                                    HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
+        try {
+            // Option A: from JWT claim
+            String token = extractToken(req);
+            String tenantId = jwtService.extractClaim(token, "tenantId");
+
+            // Option B: from subdomain (acme.myapp.com → acme)
+            // String host = req.getServerName();
+            // String tenantId = host.split("\\.")[0];
+
+            if (tenantId == null) throw new UnauthorizedException("Tenant not found");
+            TenantContext.setTenant(tenantId);
+            chain.doFilter(req, res);
+        } finally {
+            TenantContext.clear(); // MUST clear after request
+        }
+    }
+}
+
+// 3. Base entity with tenantId
+@MappedSuperclass
+public abstract class TenantEntity {
+    @Column(nullable = false)
+    private String tenantId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.tenantId == null)
+            this.tenantId = TenantContext.getTenant();
+    }
+}
+
+// 4. Repository with automatic tenant scoping
+@Repository
+public interface ProductRepository extends JpaRepository<Product, Long> {
+    // Always filter by tenant — never returns data from other tenants
+    List<Product> findByTenantId(String tenantId);
+
+    @Query("SELECT p FROM Product p WHERE p.id = :id AND p.tenantId = :tenantId")
+    Optional<Product> findByIdAndTenantId(@Param("id") Long id,
+                                           @Param("tenantId") String tenantId);
+}
+
+// 5. Service always uses TenantContext
+@Service
+public class ProductService {
+    public Product findById(Long id) {
+        return repo.findByIdAndTenantId(id, TenantContext.getTenant())
+            .orElseThrow(() -> new ResourceNotFoundException("Product", id));
+    }
+}`}]
+    },
+    {
+      q: "SCENARIO: How do you handle soft deletes in a REST API?",
+      badge: "badge-scenario",
+      note: "Hard delete is irreversible. Soft delete marks records as deleted but keeps them for audit/recovery.",
+      variants: [{l:"Soft delete with automatic filtering", c:
+`@Entity
+@SQLRestriction("deleted_at IS NULL")  // Hibernate filter — applies to ALL queries
+@SQLDelete(sql = "UPDATE products SET deleted_at = NOW() WHERE id = ?")
+public class Product {
+    @Id @GeneratedValue private Long id;
+    private String name;
+    private Double price;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;  // null = active, non-null = deleted
+}
+
+// DELETE endpoint — actually soft deletes via @SQLDelete
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> delete(@PathVariable Long id) {
+    Product p = repo.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Product", id));
+    repo.delete(p); // triggers: UPDATE products SET deleted_at=NOW() WHERE id=?
+    return ResponseEntity.noContent().build();
+}
+
+// GET endpoint — @SQLRestriction automatically excludes soft-deleted rows
+@GetMapping("/{id}")
+public ProductResponse get(@PathVariable Long id) {
+    return repo.findById(id) // WHERE id=? AND deleted_at IS NULL
+        .map(mapper::toResponse)
+        .orElseThrow(() -> new ResourceNotFoundException("Product", id));
+}
+
+// Restore endpoint (admin only)
+@PatchMapping("/{id}/restore")
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<ProductResponse> restore(@PathVariable Long id) {
+    // Need native query to bypass @SQLRestriction
+    int updated = repo.restoreById(id);
+    if (updated == 0) throw new ResourceNotFoundException("Deleted product", id);
+    return ResponseEntity.ok(repo.findById(id).map(mapper::toResponse).get());
+}
+
+@Repository
+public interface ProductRepository extends JpaRepository<Product, Long> {
+    @Modifying
+    @Query(value = "UPDATE products SET deleted_at = NULL WHERE id = ?1", nativeQuery = true)
+    int restoreById(Long id);
+}`}]
+    },
+    {
+      q: "SCENARIO: Implement a REST API with audit logging (who changed what, when)",
+      badge: "badge-scenario",
+      note: "Required in banking, healthcare, government APIs. Must capture before/after state.",
+      variants: [{l:"Audit log with Spring Data Auditing + custom interceptor", c:
+`// 1. Enable Spring Data Auditing
+@SpringBootApplication
+@EnableJpaAuditing
+public class Application { }
+
+// 2. Auditable base entity
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public abstract class AuditableEntity {
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+
+    @CreatedBy
+    @Column(updatable = false)
+    private String createdBy;
+
+    @LastModifiedBy
+    private String updatedBy;
+}
+
+// 3. Provide current user to Spring Auditing
+@Component
+public class SpringSecurityAuditorAware implements AuditorAware<String> {
+    @Override
+    public Optional<String> getCurrentAuditor() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+            .filter(Authentication::isAuthenticated)
+            .map(Authentication::getName);
+    }
+}
+
+// 4. Full audit log entity (captures every change)
+@Entity
+public class AuditLog {
+    @Id @GeneratedValue private Long id;
+    private String entityType;   // "Product"
+    private Long entityId;
+    private String action;       // CREATE, UPDATE, DELETE
+    private String performedBy;
+    private String ipAddress;
+    @Column(columnDefinition = "TEXT")
+    private String beforeValue;  // JSON of old state
+    @Column(columnDefinition = "TEXT")
+    private String afterValue;   // JSON of new state
+    private LocalDateTime timestamp;
+}
+
+// 5. AOP-based audit interceptor
+@Aspect
+@Component
+public class AuditAspect {
+    @Autowired private AuditLogRepository auditRepo;
+    @Autowired private ObjectMapper mapper;
+
+    @Around("@annotation(Auditable)")
+    public Object audit(ProceedingJoinPoint pjp) throws Throwable {
+        String entityType = getEntityType(pjp);
+        Object beforeState = captureBeforeState(pjp);
+        Object result = pjp.proceed();
+        saveAuditLog(entityType, beforeState, result);
+        return result;
+    }
+}`}]
+    },
+    {
+      q: "SCENARIO: How do you implement a webhook system as a REST API?",
+      badge: "badge-scenario",
+      note: "Webhooks = your server calls the client's URL when something happens (reverse API). Used in payment gateways, GitHub, Stripe.",
+      variants: [{l:"Webhook registration + delivery + retry system", c:
+`// 1. Webhook Registration endpoint
+@RestController
+@RequestMapping("/api/webhooks")
+public class WebhookController {
+
+    @PostMapping
+    public ResponseEntity<WebhookResponse> register(@RequestBody @Valid WebhookRequest req) {
+        // Client provides their URL + events they want
+        // req: { url: "https://client.com/webhook", events: ["ORDER_CREATED","PAYMENT_DONE"],
+        //        secret: "abc123" }
+        WebhookConfig webhook = webhookService.register(req);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(webhook));
+    }
+
+    @GetMapping  public List<WebhookResponse> list() { ... }
+    @DeleteMapping("/{id}")  public ResponseEntity<Void> delete(@PathVariable Long id) { ... }
+}
+
+// 2. Webhook delivery service
+@Service
+public class WebhookDeliveryService {
+    @Autowired private WebhookConfigRepository configRepo;
+    @Autowired private WebhookDeliveryRepository deliveryRepo;
+    @Autowired private RestTemplate restTemplate;
+
+    @Async
+    public void deliverEvent(String eventType, Object payload) {
+        List<WebhookConfig> subscribers = configRepo.findByEventType(eventType);
+
+        subscribers.forEach(config -> {
+            String body = serialize(payload);
+            String signature = hmacSign(body, config.getSecret()); // HMAC-SHA256
+
+            WebhookDelivery delivery = new WebhookDelivery(config.getId(), eventType, body);
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("Content-Type", "application/json");
+                headers.set("X-Webhook-Event", eventType);
+                headers.set("X-Webhook-Signature", "sha256=" + signature);
+                headers.set("X-Webhook-Delivery-ID", delivery.getId().toString());
+
+                ResponseEntity<String> resp = restTemplate.postForEntity(
+                    config.getUrl(), new HttpEntity<>(body, headers), String.class);
+
+                delivery.setStatus(resp.getStatusCode().is2xxSuccessful() ? "SUCCESS" : "FAILED");
+            } catch (Exception e) {
+                delivery.setStatus("FAILED");
+                delivery.setErrorMessage(e.getMessage());
+                scheduleRetry(delivery); // exponential backoff
+            }
+            deliveryRepo.save(delivery);
+        });
+    }
+
+    private void scheduleRetry(WebhookDelivery delivery) {
+        // Retry: 1min, 5min, 30min, 2hr, 24hr (max 5 attempts)
+        int attempt = delivery.getRetryCount() + 1;
+        if (attempt > 5) { delivery.setStatus("EXHAUSTED"); return; }
+        long delayMinutes = (long) Math.pow(5, attempt - 1);
+        taskScheduler.schedule(() -> retryDelivery(delivery.getId()),
+            Instant.now().plusSeconds(delayMinutes * 60));
+    }
+}`}]
+    },
+    {
+      q: "SCENARIO: Design rate limiting for different user tiers with burst allowance",
+      badge: "badge-scenario",
+      note: "Token Bucket algorithm: each user has a bucket that refills at a constant rate. Burst = extra tokens stored.",
+      variants: [{l:"Token bucket rate limiter per user tier", c:
+`/*
+  TOKEN BUCKET ALGORITHM:
+  Free   → 10 tokens/min, max bucket=10 (no burst)
+  Basic  → 100 tokens/min, max bucket=200 (burst up to 200)
+  Pro    → 1000 tokens/min, max bucket=5000 (large burst)
+
+  Each request consumes 1 token.
+  If bucket empty → 429.
+*/
+
+@Configuration
+public class RateLimiterConfig {
+
+    private final Map<String, BandwidthDefinition> PLANS = Map.of(
+        "FREE",  new BandwidthDefinition(10, 10, Duration.ofMinutes(1)),
+        "BASIC", new BandwidthDefinition(100, 200, Duration.ofMinutes(1)),
+        "PRO",   new BandwidthDefinition(1000, 5000, Duration.ofMinutes(1))
+    );
+
+    public Bucket createBucketForPlan(String plan) {
+        BandwidthDefinition def = PLANS.getOrDefault(plan, PLANS.get("FREE"));
+        Bandwidth limit = Bandwidth.builder()
+            .capacity(def.maxBurst())
+            .refillGreedy(def.refillRate(), def.period())
+            .build();
+        return Bucket.builder().addLimit(limit).build();
+    }
+}
+
+@Component
+public class BucketRateLimitFilter extends OncePerRequestFilter {
+    @Autowired private RateLimiterConfig config;
+    @Autowired private RedisTemplate<String, Long> redis;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req,
+                                    HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
+        String userId = getUserId(req);
+        String plan   = getUserPlan(req);
+        String key    = "bucket:" + userId;
+
+        // Get or create bucket state from Redis
+        Bucket bucket = loadOrCreate(key, plan);
+        ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+
+        if (probe.isConsumed()) {
+            res.setHeader("X-RateLimit-Remaining",
+                String.valueOf(probe.getRemainingTokens()));
+            chain.doFilter(req, res);
+        } else {
+            long waitSeconds = probe.getNanosToWaitForRefill() / 1_000_000_000;
+            res.setStatus(429);
+            res.setHeader("Retry-After", String.valueOf(waitSeconds));
+            res.setHeader("X-RateLimit-Remaining", "0");
+            res.getWriter().write(
+                "{\"status\":429,\"message\":\"Rate limit exceeded for plan: " + plan + "\","
+                + "\"retryAfterSeconds\":" + waitSeconds + "}");
+        }
+    }
+}`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  10. DOCUMENTATION & OPENAPI
+// ═══════════════════════════════════════════════════════
+{
+  title: "API Documentation — OpenAPI / Swagger",
+  qs: [
+    {
+      q: "How do you document a REST API with OpenAPI 3 / Swagger in Spring Boot?",
+      badge: "badge-impl",
+      note: "Good API docs = happy consumers. Bad docs = endless support tickets.",
+      variants: [{l:"SpringDoc OpenAPI 3 full setup", c:
+`// pom.xml
+// <dependency>
+//   <groupId>org.springdoc</groupId>
+//   <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+//   <version>2.3.0</version>
+// </dependency>
+
+// Global API info config
+@Configuration
+public class OpenApiConfig {
+    @Bean
+    public OpenAPI openAPI() {
+        return new OpenAPI()
+            .info(new Info()
+                .title("E-Commerce REST API")
+                .description("Enterprise grade REST API for e-commerce platform")
+                .version("v2.0.0")
+                .contact(new Contact().name("Niranjan").email("n@example.com"))
+                .license(new License().name("Apache 2.0")))
+            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+            .components(new Components()
+                .addSecuritySchemes("bearerAuth",
+                    new SecurityScheme().type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer").bearerFormat("JWT")
+                        .description("JWT token from /api/auth/login")));
+    }
+}
+
+// Documented controller
+@RestController
+@RequestMapping("/api/v2/products")
+@Tag(name = "Products", description = "Product catalog management")
+public class ProductController {
+
+    @Operation(
+        summary = "Get product by ID",
+        description = "Returns a single product. Cached for 5 minutes.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Product found",
+                content = @Content(schema = @Schema(implementation = ProductResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Product not found",
+                content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+        })
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductResponse> get(
+            @Parameter(description = "Product ID", example = "42", required = true)
+            @PathVariable Long id) {
+        return ResponseEntity.ok(productService.findById(id));
+    }
+
+    @Operation(summary = "Create product", security = @SecurityRequirement(name = "bearerAuth"))
+    @PostMapping
+    public ResponseEntity<ProductResponse> create(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Product data",
+                required = true,
+                content = @Content(schema = @Schema(implementation = ProductRequest.class)))
+            @RequestBody @Valid ProductRequest request) {
+        return ResponseEntity.status(201).body(productService.create(request));
+    }
+}
+
+# application.properties
+# springdoc.api-docs.path=/api-docs
+# springdoc.swagger-ui.path=/swagger-ui.html
+# springdoc.swagger-ui.operationsSorter=method
+# Access at: http://localhost:8080/swagger-ui.html`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  11. TESTING REST APIS
+// ═══════════════════════════════════════════════════════
+{
+  title: "Testing REST APIs",
+  qs: [
+    {
+      q: "What is the testing pyramid for REST APIs and how do you implement each layer?",
+      badge: "badge-testing",
+      note: "70% unit, 20% integration, 10% E2E. Fast feedback loop at bottom, realistic at top.",
+      variants: [
+        {l:"Layer 1: Unit tests (Service layer with Mockito)", c:
+`@ExtendWith(MockitoExtension.class)
+class ProductServiceTest {
+
+    @Mock private ProductRepository repo;
+    @Mock private ProductMapper mapper;
+    @InjectMocks private ProductService service;
+
+    @Test
+    @DisplayName("findById: existing product returns response")
+    void findById_exists_returnsResponse() {
+        Product product = Product.builder().id(1L).name("Laptop").price(999.0).build();
+        ProductResponse expected = new ProductResponse(1L, "Laptop", 999.0);
+        when(repo.findById(1L)).thenReturn(Optional.of(product));
+        when(mapper.toResponse(product)).thenReturn(expected);
+
+        ProductResponse result = service.findById(1L);
+
+        assertThat(result.getName()).isEqualTo("Laptop");
+        verify(repo, times(1)).findById(1L);
+        verifyNoMoreInteractions(repo);
+    }
+
+    @Test
+    @DisplayName("findById: missing product throws ResourceNotFoundException")
+    void findById_notFound_throws() {
+        when(repo.findById(99L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.findById(99L))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessageContaining("99");
+    }
+
+    @Test
+    @DisplayName("create: duplicate email throws ConflictException")
+    void create_duplicateEmail_throwsConflict() {
+        ProductRequest req = new ProductRequest("Laptop", 999.0, "laptop@sku");
+        when(repo.existsBySku(req.getSku())).thenReturn(true);
+        assertThatThrownBy(() -> service.create(req))
+            .isInstanceOf(ConflictException.class);
+        verify(repo, never()).save(any());
+    }
+}`},
+        {l:"Layer 2: Integration tests (Controller with MockMvc)", c:
+`@WebMvcTest(ProductController.class)
+@AutoConfigureMockMvc(addFilters = false) // skip security for controller test
+class ProductControllerTest {
+
+    @Autowired MockMvc mockMvc;
+    @Autowired ObjectMapper objectMapper;
+    @MockBean  ProductService productService;
+
+    @Test void getProduct_exists_returns200() throws Exception {
+        given(productService.findById(1L))
+            .willReturn(new ProductResponse(1L, "Laptop", 999.0));
+
+        mockMvc.perform(get("/api/v2/products/1")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.name").value("Laptop"))
+            .andExpect(jsonPath("$.price").value(999.0));
+    }
+
+    @Test void createProduct_invalidBody_returns400() throws Exception {
+        ProductRequest invalid = new ProductRequest("", -1.0, null); // all invalid
+
+        mockMvc.perform(post("/api/v2/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalid)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors").isArray())
+            .andExpect(jsonPath("$.errors.length()").value(greaterThan(0)));
+    }
+
+    @Test void getProduct_notFound_returns404() throws Exception {
+        given(productService.findById(99L))
+            .willThrow(new ResourceNotFoundException("Product", 99L));
+
+        mockMvc.perform(get("/api/v2/products/99"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.message").exists());
+    }
+}`},
+        {l:"Layer 3: E2E tests (@SpringBootTest + TestRestTemplate)", c:
+`@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@Sql(scripts = "/test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "/cleanup.sql",   executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+class ProductApiE2ETest {
+
+    @Autowired TestRestTemplate restTemplate;
+    @Autowired ProductRepository repo;
+
+    private String adminToken;
+
+    @BeforeEach void setup() {
+        adminToken = getToken("admin@test.com", "admin123");
+    }
+
+    @Test void fullCRUDFlow() {
+        // CREATE
+        ProductRequest req = new ProductRequest("Laptop", 999.0, "LAP-001");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + adminToken);
+        ResponseEntity<ProductResponse> created = restTemplate.exchange(
+            "/api/v2/products", HttpMethod.POST,
+            new HttpEntity<>(req, headers), ProductResponse.class);
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        Long id = created.getBody().getId();
+
+        // READ
+        ResponseEntity<ProductResponse> fetched = restTemplate.getForEntity(
+            "/api/v2/products/" + id, ProductResponse.class);
+        assertThat(fetched.getBody().getName()).isEqualTo("Laptop");
+
+        // UPDATE
+        // DELETE
+        // verify DB state directly
+        assertThat(repo.findById(id)).isPresent();
+    }
+}`}
+      ]
+    },
+    {
+      q: "How do you test authenticated REST endpoints with Spring Security?",
+      badge: "badge-testing",
+      variants: [{l:"Security testing with JWT mocking", c:
+`// Option 1: @WithMockUser (simple role-based tests)
+@Test
+@WithMockUser(roles = "ADMIN")
+void deleteProduct_asAdmin_returns204() throws Exception {
+    doNothing().when(productService).delete(1L);
+    mockMvc.perform(delete("/api/v2/products/1"))
+        .andExpect(status().isNoContent());
+}
+
+@Test
+@WithMockUser(roles = "USER")
+void deleteProduct_asUser_returns403() throws Exception {
+    mockMvc.perform(delete("/api/v2/products/1"))
+        .andExpect(status().isForbidden());
+}
+
+@Test
+void deleteProduct_unauthenticated_returns401() throws Exception {
+    mockMvc.perform(delete("/api/v2/products/1"))
+        .andExpect(status().isUnauthorized());
+}
+
+// Option 2: Real JWT in test (E2E)
+@Test void securedEndpoint_withValidJwt_returns200() {
+    // Get real token from auth endpoint
+    AuthRequest auth = new AuthRequest("user@test.com", "password");
+    ResponseEntity<AuthResponse> tokenResp = restTemplate.postForEntity(
+        "/api/auth/login", auth, AuthResponse.class);
+    String token = tokenResp.getBody().getAccessToken();
+
+    // Use real token
+    HttpHeaders headers = new HttpHeaders();
+    headers.setBearerAuth(token);
+    ResponseEntity<ProductResponse> resp = restTemplate.exchange(
+        "/api/v2/products/1", HttpMethod.GET,
+        new HttpEntity<>(headers), ProductResponse.class);
+    assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+}`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════
+//  12. BEST PRACTICES & ANTI-PATTERNS
+// ═══════════════════════════════════════════════════════
+{
+  title: "Best Practices & Anti-Patterns",
+  qs: [
+    {
+      q: "What are the top 10 REST API design mistakes and how to avoid them?",
+      badge: "badge-design",
+      variants: [{l:"Anti-patterns reference guide", c:
+`/*
+  MISTAKE 1: Exposing DB entity directly as response
+  BAD:  return userRepository.findById(id); // exposes password, version, internals
+  GOOD: return mapper.toResponse(user);      // DTO with only needed fields
+
+  MISTAKE 2: Not using correct HTTP methods
+  BAD:  GET  /deleteUser/1
+  GOOD: DELETE /users/1
+
+  MISTAKE 3: Inconsistent error responses
+  BAD:  return "User not found";  / {"error":"bad"} / null
+  GOOD: Always return ApiError DTO with status, message, timestamp, traceId
+
+  MISTAKE 4: Not versioning the API
+  BAD:  Breaking change deployed → all clients break overnight
+  GOOD: /api/v1 → /api/v2 with deprecation notice + sunset date header
+
+  MISTAKE 5: Returning entire objects in lists (over-fetching)
+  BAD:  GET /users → returns full User with orders, addresses, permissions (N+1 + bloat)
+  GOOD: GET /users → returns UserSummary (id, name, email only)
+        GET /users/42 → returns full UserDetails
+
+  MISTAKE 6: Ignoring pagination
+  BAD:  return userRepository.findAll(); // 1 million rows!
+  GOOD: return userRepository.findAll(pageable);
+
+  MISTAKE 7: Not validating input
+  BAD:  save(request) // SQL injection, NPE, invalid data
+  GOOD: @Valid @RequestBody UserRequest req + Bean Validation
+
+  MISTAKE 8: Storing JWT in localStorage
+  BAD:  localStorage.setItem('token', jwt) // XSS vulnerable
+  GOOD: HttpOnly cookie (can't be read by JS) or sessionStorage with short TTL
+
+  MISTAKE 9: Logging sensitive data
+  BAD:  log.info("User login: email={}, password={}", email, password);
+  GOOD: log.info("User login attempt: email={}", email);
+
+  MISTAKE 10: Not implementing circuit breakers
+  BAD:  Direct call to payment service — if it's slow, threads pile up
+  GOOD: Resilience4j circuit breaker with fallback
+*/`}]
+    },
+    {
+      q: "How do you implement structured request/response logging for REST APIs?",
+      badge: "badge-impl",
+      note: "Never log request bodies in production unless absolutely needed. They may contain PII or secrets.",
+      variants: [{l:"Request/Response logging filter with MDC", c:
+`@Component
+@Order(1)
+public class RequestLoggingFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(RequestLoggingFilter.class);
+    private static final Set<String> SENSITIVE_HEADERS = Set.of(
+        "authorization", "x-api-key", "cookie", "set-cookie");
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req,
+                                    HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
+
+        String traceId = Optional.ofNullable(req.getHeader("X-Request-ID"))
+            .orElse(UUID.randomUUID().toString());
+
+        // MDC = Mapped Diagnostic Context – thread-local log metadata
+        MDC.put("traceId", traceId);
+        MDC.put("method", req.getMethod());
+        MDC.put("path", req.getRequestURI());
+        MDC.put("clientIp", getClientIp(req));
+
+        long start = System.currentTimeMillis();
+        try {
+            log.info("→ {} {} [user={}]",
+                req.getMethod(), req.getRequestURI(), getUsername());
+
+            chain.doFilter(req, res);
+
+        } finally {
+            long duration = System.currentTimeMillis() - start;
+            MDC.put("duration", String.valueOf(duration));
+            MDC.put("status", String.valueOf(res.getStatus()));
+
+            // Log slow requests as WARN
+            if (duration > 2000) {
+                log.warn("SLOW ← {} {} {}ms [status={}]",
+                    req.getMethod(), req.getRequestURI(), duration, res.getStatus());
+            } else {
+                log.info("← {} {} {}ms [status={}]",
+                    req.getMethod(), req.getRequestURI(), duration, res.getStatus());
+            }
+            // Add traceId to response so client can report it on errors
+            res.setHeader("X-Request-ID", traceId);
+            MDC.clear();
+        }
+    }
+
+    private String getUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null ? auth.getName() : "anonymous";
+    }
+    private String getClientIp(HttpServletRequest req) {
+        String forwarded = req.getHeader("X-Forwarded-For");
+        return forwarded != null ? forwarded.split(",")[0].trim() : req.getRemoteAddr();
+    }
+}
+// Log output format (logback):
+// 2024-01-15 09:30:00 [traceId=abc123] INFO  → GET /api/products/1 [user=niranjan]
+// 2024-01-15 09:30:00 [traceId=abc123] INFO  ← GET /api/products/1 45ms [status=200]`}]
+    }
+  ]
+}
+];
+
+// ── HELPERS ────────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── CUSTOM Q's (localStorage) ──────────────────────────────────────────────────
+var STORAGE_KEY = 'restapi_cheat_v1';
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || {}; } catch(e) { return {}; }
+}
+function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e){} }
+
+// Custom sections storage: { sectionTitle: [{q,badge,note,variants},...] }
+function getCustomSections() {
+  var d = loadData();
+  return d.customSections || {};
+}
+function saveCustomSection(sectionTitle, questions) {
+  var d = loadData();
+  if (!d.customSections) d.customSections = {};
+  d.customSections[sectionTitle] = questions;
+  saveData(d);
+}
+
+// Global custom Qs (FAB button – choose section)
+function addToSection(sectionTitle, question) {
+  var d = loadData();
+  if (!d.customSections) d.customSections = {};
+  if (!d.customSections[sectionTitle]) d.customSections[sectionTitle] = [];
+  d.customSections[sectionTitle].push(question);
+  saveData(d);
+}
+
+// ── BUILD ALL SECTIONS LIST ─────────────────────────────────────────────────────
+function getAllSections() {
+  var all = SECTIONS.map(function(s){ return {title:s.title, qs:s.qs, isBuiltIn:true}; });
+  var custom = getCustomSections();
+  Object.keys(custom).forEach(function(title){
+    var existing = all.find(function(s){ return s.title === title; });
+    if (existing) {
+      // append to existing section as custom items
+      existing.customQs = custom[title];
+    } else {
+      // brand new custom section
+      all.push({title:title, qs:[], customQs:custom[title], isBuiltIn:false});
+    }
+  });
+  return all;
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function render(filter) {
+  var root = document.getElementById('root');
+  var noR  = document.getElementById('noResults');
+  filter = (filter||'').toLowerCase().trim();
+  var html = '', total = 0;
+  var all = getAllSections();
+
+  for (var si = 0; si < all.length; si++) {
+    var sec = all[si];
+    var allQs = (sec.qs||[]).concat((sec.customQs||[]).map(function(q){
+      return Object.assign({}, q, {isCustom:true});
+    }));
+
+    var items = [];
+    for (var qi = 0; qi < allQs.length; qi++) {
+      var q = allQs[qi];
+      if (!filter) { items.push({q:q,idx:qi}); continue; }
+      var hit = q.q.toLowerCase().indexOf(filter)>=0 || ((q.note||'').toLowerCase().indexOf(filter)>=0);
+      if (!hit) for (var vi=0;vi<(q.variants||[]).length;vi++) {
+        if ((q.variants[vi].l||'').toLowerCase().indexOf(filter)>=0 ||
+            (q.variants[vi].c||'').toLowerCase().indexOf(filter)>=0){ hit=true; break; }
+      }
+      if (hit) items.push({q:q,idx:qi});
+    }
+    if (!items.length && filter) continue;
+    total += items.length;
+
+    html += '<div class="section-wrap" data-section="'+esc(sec.title)+'">'+
+            '<div class="section-header">'+
+            '<span class="section-title">'+esc(sec.title)+'</span>'+
+            '<button class="section-add-btn" onclick="openModal(\''+esc(sec.title)+'\')">+ Add to this section</button>'+
+            '</div>';
+
+    for (var ii=0;ii<items.length;ii++) {
+      var item=items[ii].q;
+      var badge = item.badge || 'badge-custom';
+      var badgeText = badge.replace('badge-','');
+      var noteHtml = item.note ? '<div class="note">&#128204; '+esc(item.note)+'</div>' : '';
+      var vHtml = '';
+      for (var vv=0;vv<(item.variants||[]).length;vv++) {
+        var v=item.variants[vv];
+        vHtml += '<div class="variant"><div class="vlabel">'+esc(v.l)+'</div><pre>'+esc(v.c)+'</pre></div>';
+      }
+      html += '<div class="q-card">'+
+              '<div class="q-trigger">'+
+              '<span class="q-badge '+badge+'">'+badgeText+'</span>'+
+              '<div class="q-text">'+esc(item.q)+'</div>'+
+              '<div class="chevron">&#9660;</div>'+
+              '</div>'+
+              '<div class="q-body">'+noteHtml+vHtml+'</div></div>';
+    }
+    html += '</div>';
+  }
+
+  root.innerHTML = html || (filter ? '' : html);
+  noR.style.display = (total===0 && filter) ? 'block' : 'none';
+}
+
+// ── ACCORDION ──────────────────────────────────────────────────────────────────
+document.getElementById('root').addEventListener('click', function(e) {
+  var el = e.target;
+  while (el && el !== this) {
+    if (el.classList.contains('section-add-btn')) return; // handled by onclick
+    if (el.classList.contains('q-trigger')) {
+      var card = el.closest ? el.closest('.q-card') : el.parentElement;
+      if (card) card.classList.toggle('open');
+      return;
+    }
+    el = el.parentElement;
+  }
+});
+
+document.getElementById('searchBox').addEventListener('input', function(){ render(this.value); });
+
+// ── MODAL ──────────────────────────────────────────────────────────────────────
+var variantCount = 1;
+var modalTargetSection = null;
+
+function populateSectionDropdown(preSelected) {
+  var sel = document.getElementById('qSection');
+  sel.innerHTML = '';
+  // Built-in sections
+  SECTIONS.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s.title; opt.textContent = s.title;
+    if (preSelected && s.title === preSelected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  // Divider
+  var div = document.createElement('option');
+  div.disabled = true; div.textContent = '── Custom Sections ──';
+  sel.appendChild(div);
+  // Existing custom sections
+  Object.keys(getCustomSections()).forEach(function(title){
+    var opt = document.createElement('option');
+    opt.value = title; opt.textContent = '⭐ ' + title;
+    if (preSelected && title === preSelected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  // New section option
+  var newOpt = document.createElement('option');
+  newOpt.value = '__new__'; newOpt.textContent = '+ Create new section...';
+  sel.appendChild(newOpt);
+
+  sel.onchange = function() {
+    document.getElementById('newSectionWrap').style.display =
+      sel.value === '__new__' ? 'block' : 'none';
+  };
+}
+
+function openModal(sectionTitle) {
+  variantCount = 1;
+  modalTargetSection = sectionTitle || null;
+  document.getElementById('qTitle').value = '';
+  document.getElementById('qNote').value = '';
+  document.getElementById('qBadge').value = 'badge-impl';
+  document.getElementById('variantsWrap').innerHTML = makeVariantBlock(0);
+
+  // Ensure new section input exists
+  var nb = document.getElementById('newSectionWrap');
+  if (!nb) {
+    nb = document.createElement('div');
+    nb.id = 'newSectionWrap';
+    nb.style.display = 'none';
+    nb.innerHTML = '<label class="modal-label">New Section Name *</label>'+
+      '<input type="text" class="modal-input" id="newSectionName" placeholder="e.g. GraphQL Integration" />';
+    document.getElementById('qSection').parentNode.insertAdjacentElement('afterend', nb);
+  }
+  nb.style.display = 'none';
+
+  populateSectionDropdown(sectionTitle);
+  document.getElementById('addModal').style.display = 'flex';
+  document.getElementById('qTitle').focus();
+}
+function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+function makeVariantBlock(idx) {
+  return '<div class="variant-block" id="vb'+idx+'">'+
+    '<div class="vb-header"><span class="vb-label">Answer / Variant '+(idx+1)+'</span>'+
+    (idx>0?'<button type="button" class="rm-variant" onclick="removeVariant('+idx+')">&#10005; Remove</button>':'')+
+    '</div>'+
+    '<input type="text" class="modal-input" id="vLabel'+idx+'" placeholder="Label (e.g. Using Redis)" />'+
+    '<textarea class="modal-code" id="vCode'+idx+'" rows="7" placeholder="Paste your code or notes here..."></textarea>'+
+    '</div>';
+}
+function addVariant() {
+  document.getElementById('variantsWrap').insertAdjacentHTML('beforeend', makeVariantBlock(variantCount));
+  variantCount++;
+}
+function removeVariant(idx) { var e=document.getElementById('vb'+idx); if(e) e.remove(); }
+
+function saveQuestion() {
+  var selEl = document.getElementById('qSection');
+  var sectionTitle = selEl.value;
+
+  if (sectionTitle === '__new__') {
+    sectionTitle = (document.getElementById('newSectionName')||{value:''}).value.trim();
+    if (!sectionTitle) { alert('Please enter a name for the new section.'); return; }
+  }
+
+  var title = document.getElementById('qTitle').value.trim();
+  var note  = document.getElementById('qNote').value.trim();
+  var badge = document.getElementById('qBadge').value;
+  if (!title) { alert('Please enter a question title.'); return; }
+
+  var variants = [];
+  for (var i=0;i<variantCount;i++) {
+    var lEl=document.getElementById('vLabel'+i), cEl=document.getElementById('vCode'+i);
+    if (!lEl||!cEl) continue;
+    var l=lEl.value.trim(), c=cEl.value.trim();
+    if (!l&&!c) continue;
+    variants.push({l:l||'Solution',c:c});
+  }
+  if (!variants.length) { alert('Please add at least one answer/variant.'); return; }
+
+  var newQ = {q:title, badge:badge, variants:variants};
+  if (note) newQ.note = note;
+
+  addToSection(sectionTitle, newQ);
+  closeModal();
+  render(document.getElementById('searchBox').value);
+  // Scroll to the section
+  setTimeout(function(){
+    var el = document.querySelector('[data-section="'+sectionTitle+'"]');
+    if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
+}
+
+document.getElementById('addModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+render('');
+</script>
+</body>
+</html>

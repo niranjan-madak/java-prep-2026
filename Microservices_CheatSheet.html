@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microservices Cheat Sheet</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0a1628; color: #e2e8f0; min-height: 100vh; padding-bottom: 80px;
+}
+header {
+  background: linear-gradient(135deg, #0a2a3a 0%, #0a1628 100%);
+  padding: 22px 16px 18px; text-align: center; border-bottom: 2px solid #0ea5e9;
+}
+header h1 { font-size: 1.45rem; color: #38bdf8; font-weight: 800; letter-spacing: -0.3px; }
+header p  { font-size: 0.82rem; color: #94a3b8; margin-top: 5px; }
+.sticky-bar {
+  position: sticky; top: 0; z-index: 200; background: #0d1f35;
+  border-bottom: 1px solid #1e3a5f; padding: 10px 12px;
+}
+.sticky-bar input {
+  width: 100%; padding: 9px 14px; border-radius: 8px; border: 1px solid #1e3a5f;
+  background: #0a1628; color: #e2e8f0; font-size: 0.92rem; outline: none;
+}
+.sticky-bar input:focus { border-color: #0ea5e9; }
+.sticky-bar input::placeholder { color: #4a6a8a; }
+.section-wrap { margin: 14px 10px 4px; }
+.section-title {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.6px;
+  color: #38bdf8; font-weight: 800; padding-bottom: 7px;
+  border-bottom: 1px solid #1e3a5f; margin-bottom: 8px;
+}
+.q-card {
+  background: #0d1f35; border: 1px solid #1e3a5f;
+  border-radius: 10px; margin-bottom: 7px; overflow: hidden;
+}
+.q-card.open { border-color: #0ea5e9; }
+.q-trigger {
+  display: flex; align-items: center; gap: 10px; padding: 13px 14px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.q-trigger:active { background: #112238; }
+.q-text { flex: 1; font-size: 0.88rem; font-weight: 600; color: #7dd3fc; line-height: 1.35; }
+.q-card.open .q-text { color: #38bdf8; }
+.chevron {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: #1e3a5f; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #4a7fa8; transition: transform 0.22s ease, background 0.2s;
+}
+.q-card.open .chevron { transform: rotate(180deg); background: #0ea5e9; color: #fff; }
+.q-body { display: none; border-top: 1px solid #1e3a5f; }
+.q-card.open .q-body { display: block; }
+.note {
+  margin: 10px 14px 0; background: #0a1628; border-left: 3px solid #0ea5e9;
+  border-radius: 0 6px 6px 0; padding: 8px 11px; font-size: 0.78rem;
+  color: #94a3b8; line-height: 1.55;
+}
+.variant { padding: 10px 14px 12px; border-bottom: 1px solid #0a1628; }
+.variant:last-child { border-bottom: none; }
+.vlabel {
+  font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: #38bdf8; margin-bottom: 7px;
+}
+pre {
+  background: #050d1a; border: 1px solid #1e3a5f; border-radius: 7px;
+  padding: 12px; overflow-x: auto; font-family: 'Courier New', monospace;
+  font-size: 0.74rem; line-height: 1.7; color: #7dd3fc; white-space: pre;
+}
+.no-results { text-align: center; padding: 50px 20px; color: #1e3a5f; font-size: 0.9rem; }
+#fabBtn {
+  position: fixed; bottom: 24px; right: 20px; width: 54px; height: 54px;
+  border-radius: 50%; background: #0ea5e9; color: #fff; font-size: 2rem;
+  font-weight: 300; border: none; cursor: pointer;
+  box-shadow: 0 4px 18px rgba(14,165,233,0.45); z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1; transition: transform 0.15s;
+}
+#fabBtn:active { transform: scale(0.92); }
+#addModal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 1000;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+@media (min-width: 600px) { #addModal { align-items: center; padding: 20px; } }
+#modalBox {
+  background: #0d1f35; border-radius: 16px 16px 0 0; width: 100%;
+  max-width: 620px; max-height: 92vh; display: flex; flex-direction: column;
+  overflow: hidden; border: 1px solid #0ea5e9;
+}
+@media (min-width: 600px) { #modalBox { border-radius: 16px; } }
+#modalHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid #1e3a5f; flex-shrink: 0;
+}
+#modalTitle { font-size: 1rem; font-weight: 700; color: #38bdf8; }
+#modalClose {
+  background: #1e3a5f; border: none; color: #4a7fa8; width: 28px; height: 28px;
+  border-radius: 50%; cursor: pointer; font-size: 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+}
+#modalBody { padding: 16px 18px; overflow-y: auto; flex: 1; }
+.modal-label {
+  display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: #38bdf8; margin-bottom: 6px; margin-top: 14px;
+}
+.modal-label:first-child { margin-top: 0; }
+.modal-input {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #1e3a5f;
+  background: #0a1628; color: #e2e8f0; font-size: 0.88rem; outline: none; margin-bottom: 2px;
+}
+.modal-input:focus { border-color: #0ea5e9; }
+.modal-code {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #1e3a5f;
+  background: #050d1a; color: #7dd3fc; font-family: 'Courier New', monospace;
+  font-size: 0.78rem; line-height: 1.6; outline: none; resize: vertical; margin-bottom: 2px;
+}
+.modal-code:focus { border-color: #0ea5e9; }
+.variant-block {
+  background: #0a1628; border: 1px solid #1e3a5f; border-radius: 8px;
+  padding: 12px; margin-bottom: 10px;
+}
+.vb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.vb-label { font-size: 0.75rem; font-weight: 700; color: #4a7fa8; }
+.rm-variant {
+  background: #0d1f35; border: 1px solid #1e3a5f; color: #ef4444;
+  border-radius: 5px; padding: 3px 8px; font-size: 0.7rem; cursor: pointer;
+}
+#addVariantBtn {
+  width: 100%; padding: 9px; margin-top: 4px; background: transparent;
+  border: 1px dashed #1e3a5f; color: #4a7fa8; border-radius: 7px;
+  font-size: 0.82rem; cursor: pointer; transition: border-color 0.2s, color 0.2s;
+}
+#addVariantBtn:hover, #addVariantBtn:active { border-color: #0ea5e9; color: #38bdf8; }
+#modalFooter {
+  display: flex; gap: 10px; padding: 14px 18px;
+  border-top: 1px solid #1e3a5f; flex-shrink: 0;
+}
+#cancelBtn {
+  flex: 1; padding: 11px; border-radius: 8px; border: 1px solid #1e3a5f;
+  background: transparent; color: #4a7fa8; font-size: 0.9rem; cursor: pointer;
+}
+#saveBtn {
+  flex: 2; padding: 11px; border-radius: 8px; border: none;
+  background: #0ea5e9; color: #fff; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+}
+#saveBtn:active { background: #0284c7; }
+.custom-card { border-color: #0a2a3a !important; }
+.custom-card.open { border-color: #0ea5e9 !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>&#9889; Microservices with Spring Boot</h1>
+  <p>Architecture &bull; Components &bull; Implementation &bull; Tap <strong>+</strong> to add your own</p>
+</header>
+<div class="sticky-bar">
+  <input type="text" id="searchBox" placeholder="Search (e.g. gateway, eureka, feign, circuit breaker...)" />
+</div>
+<div id="root"></div>
+<div id="noResults" class="no-results" style="display:none">No matches found.</div>
+<button id="fabBtn" onclick="openModal()" title="Add new question">+</button>
+<div id="addModal" style="display:none">
+  <div id="modalBox">
+    <div id="modalHeader">
+      <span id="modalTitle">Add New Question</span>
+      <button id="modalClose" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div id="modalBody">
+      <label class="modal-label">Question Title *</label>
+      <input type="text" class="modal-input" id="qTitle" placeholder="e.g. How does service mesh work?" />
+      <label class="modal-label">Note / Tip (optional)</label>
+      <input type="text" class="modal-input" id="qNote" placeholder="e.g. Used in production setups" />
+      <label class="modal-label" style="margin-top:16px">Answers / Variants</label>
+      <div id="variantsWrap"></div>
+      <button id="addVariantBtn" type="button" onclick="addVariant()">+ Add Another Variant</button>
+    </div>
+    <div id="modalFooter">
+      <button id="cancelBtn" onclick="closeModal()">Cancel</button>
+      <button id="saveBtn" onclick="saveQuestion()">Save Question</button>
+    </div>
+  </div>
+</div>
+<script>
+var SECTIONS = [
+{
+  title: "Microservices – Core Concepts",
+  qs: [
+    {
+      q: "What is Microservices Architecture and how is it different from Monolith?",
+      note: "Microservices = independently deployable, loosely coupled services each owning their own data.",
+      variants: [{l:"Monolith vs Microservices comparison", c:
+`/* MONOLITH
+   - Single deployable unit
+   - All modules tightly coupled in one codebase
+   - Shared database
+   - Scale the entire app even if only one part is under load
+   - Easier to develop initially, harder to scale and maintain
+*/
+
+/* MICROSERVICES
+   - Each feature is a separate independently deployable service
+   - Services communicate via REST, gRPC, or Message Queues
+   - Each service owns its own database (Database per Service pattern)
+   - Scale only the services that need it
+   - Technology agnostic – each service can use a different stack
+*/
+
+/* Typical Microservices breakdown of an e-commerce app:
+   user-service      → manages users, auth
+   product-service   → manages product catalog
+   order-service     → manages orders
+   payment-service   → handles payments
+   notification-service → sends emails/SMS
+   api-gateway       → single entry point for clients
+*/`}]
+    },
+    {
+      q: "What are the key components of a Microservices ecosystem?",
+      note: "Each component solves a specific distributed systems challenge.",
+      variants: [{l:"Full component overview", c:
+`/*
+  COMPONENT                  PURPOSE                         SPRING TOOL
+  ─────────────────────────────────────────────────────────────────────
+  API Gateway              Single entry point, routing      Spring Cloud Gateway
+  Service Registry         Service discovery & registration  Eureka Server
+  Config Server            Centralised configuration         Spring Cloud Config
+  Load Balancer            Distribute traffic across instances Spring Cloud LoadBalancer
+  Inter-service Comm.      Sync service-to-service calls     OpenFeign / RestTemplate
+  Circuit Breaker          Fault tolerance & resilience      Resilience4j
+  Message Broker           Async event-driven communication  RabbitMQ / Apache Kafka
+  Distributed Tracing      Track requests across services    Zipkin + Sleuth / Micrometer
+  Centralized Logging      Aggregate logs from all services  ELK Stack (Elasticsearch+Logstash+Kibana)
+  Container Orchestration  Deploy & manage containers        Docker + Kubernetes
+  Service Mesh             Network policies, mTLS, observability  Istio / Linkerd
+*/`}]
+    }
+  ]
+},
+{
+  title: "Service Registry – Eureka",
+  qs: [
+    {
+      q: "How do you set up Eureka Server (Service Registry)?",
+      note: "Eureka Server is where all microservices register themselves. Other services discover each other through it.",
+      variants: [
+        {l:"pom.xml dependency", c:
+`<!-- Eureka Server -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+</dependency>
+
+<!-- Spring Cloud BOM (add in dependencyManagement) -->
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>2023.0.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>`},
+        {l:"Main class + application.properties", c:
+`// Main class
+@SpringBootApplication
+@EnableEurekaServer       // <-- enables Eureka Server
+public class ServiceRegistryApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ServiceRegistryApplication.class, args);
+    }
+}
+
+# application.properties
+spring.application.name=service-registry
+server.port=8761
+
+# Don't register the server with itself
+eureka.client.register-with-eureka=false
+eureka.client.fetch-registry=false
+
+eureka.instance.hostname=localhost
+eureka.server.wait-time-in-ms-when-sync-empty=0
+
+# Dashboard available at: http://localhost:8761`}
+      ]
+    },
+    {
+      q: "How do you register a microservice as a Eureka Client?",
+      variants: [
+        {l:"pom.xml + main class + properties", c:
+`<!-- Add to each microservice -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+
+// Main class (annotation optional in newer versions – auto-configured)
+@SpringBootApplication
+@EnableDiscoveryClient   // optional in Spring Cloud 2020+
+public class UserServiceApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(UserServiceApplication.class, args);
+    }
+}
+
+# application.properties of user-service
+spring.application.name=USER-SERVICE
+server.port=8081
+
+# Point to Eureka Server
+eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
+eureka.client.register-with-eureka=true
+eureka.client.fetch-registry=true
+
+# Instance config
+eureka.instance.prefer-ip-address=true
+eureka.instance.lease-renewal-interval-in-seconds=10`}
+      ]
+    }
+  ]
+},
+{
+  title: "API Gateway – Spring Cloud Gateway",
+  qs: [
+    {
+      q: "How do you set up Spring Cloud API Gateway?",
+      note: "API Gateway is the single entry point for all client requests. It handles routing, auth, rate limiting, and load balancing.",
+      variants: [
+        {l:"pom.xml dependency", c:
+`<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-gateway</artifactId>
+</dependency>
+
+<!-- For Eureka integration (service discovery routing) -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+
+<!-- NOTE: Spring Cloud Gateway uses WebFlux (reactive) -->
+<!-- Do NOT add spring-boot-starter-web alongside it -->`},
+        {l:"application.yml routing configuration", c:
+`spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # Route to user-service
+        - id: user-service
+          uri: lb://USER-SERVICE       # lb:// = load-balanced via Eureka
+          predicates:
+            - Path=/api/users/**       # match URL pattern
+          filters:
+            - StripPrefix=0            # remove prefix if needed
+
+        # Route to order-service
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/orders/**
+
+        # Route to product-service
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/products/**
+
+      # Global CORS config
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+
+  # Register gateway itself with Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+server:
+  port: 8080`},
+        {l:"Route with JWT auth filter", c:
+`@Component
+public class AuthenticationFilter implements GatewayFilter {
+
+    @Autowired private JwtUtil jwtUtil;
+    @Autowired private RouteValidator routeValidator;
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+
+        // Skip auth for public endpoints
+        if (routeValidator.isOpenEndpoint.test(request)) {
+            return chain.filter(exchange);
+        }
+
+        // Check Authorization header
+        if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+            throw new RuntimeException("Missing authorization header");
+        }
+
+        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String token = authHeader != null ? authHeader.substring(7) : null;
+
+        try {
+            jwtUtil.validateToken(token);
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid or expired token");
+        }
+
+        return chain.filter(exchange);
+    }
+}
+
+// RouteValidator – defines which endpoints are public
+@Component
+public class RouteValidator {
+    public static final List<String> openEndpoints = List.of(
+        "/api/auth/register",
+        "/api/auth/login",
+        "/eureka"
+    );
+    public Predicate<ServerHttpRequest> isOpenEndpoint =
+        req -> openEndpoints.stream()
+            .noneMatch(uri -> req.getURI().getPath().contains(uri));
+}`}
+      ]
+    }
+  ]
+},
+{
+  title: "Config Server – Centralised Configuration",
+  qs: [
+    {
+      q: "How do you set up Spring Cloud Config Server?",
+      note: "Config Server serves configuration files for all microservices from a central Git repo or local file system.",
+      variants: [
+        {l:"Config Server setup", c:
+`<!-- pom.xml -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-config-server</artifactId>
+</dependency>
+
+// Main class
+@SpringBootApplication
+@EnableConfigServer      // <-- enables Config Server
+public class ConfigServerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ConfigServerApplication.class, args);
+    }
+}
+
+# application.properties
+spring.application.name=config-server
+server.port=8888
+
+# Git-based config (recommended for production)
+spring.cloud.config.server.git.uri=https://github.com/yourname/config-repo
+spring.cloud.config.server.git.clone-on-start=true
+spring.cloud.config.server.git.default-label=main
+
+# OR local file system (for development)
+# spring.cloud.config.server.native.search-locations=classpath:/configs
+# spring.profiles.active=native`},
+        {l:"Config Client setup in microservices", c:
+`<!-- Add to each microservice pom.xml -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-config</artifactId>
+</dependency>
+
+# bootstrap.properties (loaded before application.properties)
+spring.application.name=user-service
+spring.cloud.config.uri=http://localhost:8888
+spring.cloud.config.fail-fast=true
+
+# Config files in Git repo should be named:
+# user-service.properties       → default
+# user-service-dev.properties   → dev profile
+# user-service-prod.properties  → prod profile
+
+# Refresh config without restart
+management.endpoints.web.exposure.include=refresh
+# POST http://localhost:8081/actuator/refresh
+
+# @RefreshScope on beans that use @Value to auto-refresh
+@RefreshScope
+@RestController
+public class UserController {
+    @Value("\${user.welcome.message}")
+    private String welcomeMessage;
+}`}
+      ]
+    }
+  ]
+},
+{
+  title: "Inter-Service Communication – OpenFeign",
+  qs: [
+    {
+      q: "How do you call another microservice synchronously using OpenFeign?",
+      note: "OpenFeign creates a REST client from a Java interface. Uses Eureka for service discovery automatically.",
+      variants: [
+        {l:"pom.xml + Feign client interface", c:
+`<!-- pom.xml -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+
+// Enable Feign in main class
+@SpringBootApplication
+@EnableFeignClients
+public class OrderServiceApplication { ... }
+
+// Feign client – mirrors the REST API of the target service
+@FeignClient(name = "USER-SERVICE")   // name matches Eureka service name
+public interface UserServiceClient {
+
+    @GetMapping("/api/users/{id}")
+    UserResponse getUserById(@PathVariable("id") Long id);
+
+    @GetMapping("/api/users")
+    List<UserResponse> getAllUsers();
+
+    @PostMapping("/api/users")
+    UserResponse createUser(@RequestBody UserRequest request);
+}
+
+// Use in Order Service
+@Service
+public class OrderService {
+
+    @Autowired
+    private UserServiceClient userServiceClient;
+
+    public OrderResponse createOrder(OrderRequest request) {
+        // Call user-service via Feign (no hardcoded URL!)
+        UserResponse user = userServiceClient.getUserById(request.getUserId());
+        // build order...
+        return orderRepository.save(order);
+    }
+}`},
+        {l:"Feign with custom config, headers and error decoder", c:
+`// Custom Feign configuration
+@Configuration
+public class FeignConfig {
+
+    @Bean
+    public RequestInterceptor requestInterceptor() {
+        return template -> {
+            // Forward JWT token to downstream services
+            ServletRequestAttributes attrs =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs != null) {
+                String token = attrs.getRequest().getHeader("Authorization");
+                if (token != null) template.header("Authorization", token);
+            }
+        };
+    }
+
+    @Bean
+    public ErrorDecoder errorDecoder() {
+        return (methodKey, response) -> {
+            if (response.status() == 404)
+                return new ResourceNotFoundException("Resource not found via Feign");
+            return new Exception("Feign error: " + response.status());
+        };
+    }
+}
+
+// Apply custom config to specific client
+@FeignClient(name = "USER-SERVICE", configuration = FeignConfig.class)
+public interface UserServiceClient { ... }`}
+      ]
+    },
+    {
+      q: "How do you call another service using RestTemplate?",
+      note: "RestTemplate is the older approach. Prefer OpenFeign or WebClient for new projects.",
+      variants: [{l:"RestTemplate with load balancing", c:
+`// Config
+@Configuration
+public class AppConfig {
+    @Bean
+    @LoadBalanced    // integrates with Eureka for load balancing
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
+
+// Usage in service
+@Service
+public class OrderService {
+    @Autowired
+    private RestTemplate restTemplate;
+
+    public UserResponse getUserById(Long id) {
+        // Use service name (Eureka) instead of hardcoded URL
+        String url = "http://USER-SERVICE/api/users/" + id;
+        return restTemplate.getForObject(url, UserResponse.class);
+    }
+
+    public void createUser(UserRequest request) {
+        String url = "http://USER-SERVICE/api/users";
+        ResponseEntity<UserResponse> response =
+            restTemplate.postForEntity(url, request, UserResponse.class);
+    }
+}`}]
+    },
+    {
+      q: "How do you use WebClient for reactive inter-service communication?",
+      note: "WebClient is non-blocking and is the recommended approach in Spring WebFlux / reactive microservices.",
+      variants: [{l:"WebClient setup and usage", c:
+`<!-- pom.xml -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
+
+// Config
+@Configuration
+public class WebClientConfig {
+    @Bean
+    @LoadBalanced
+    public WebClient.Builder webClientBuilder() {
+        return WebClient.builder();
+    }
+}
+
+// Usage
+@Service
+public class OrderService {
+    @Autowired
+    private WebClient.Builder webClientBuilder;
+
+    // Non-blocking GET
+    public Mono<UserResponse> getUserById(Long id) {
+        return webClientBuilder.build()
+            .get()
+            .uri("http://USER-SERVICE/api/users/" + id)
+            .retrieve()
+            .bodyToMono(UserResponse.class);
+    }
+
+    // Non-blocking POST
+    public Mono<UserResponse> createUser(UserRequest request) {
+        return webClientBuilder.build()
+            .post()
+            .uri("http://USER-SERVICE/api/users")
+            .bodyValue(request)
+            .retrieve()
+            .onStatus(HttpStatusCode::isError,
+                response -> Mono.error(new RuntimeException("User service error")))
+            .bodyToMono(UserResponse.class);
+    }
+}`}]
+    }
+  ]
+},
+{
+  title: "Circuit Breaker – Resilience4j",
+  qs: [
+    {
+      q: "What is a Circuit Breaker and why is it needed?",
+      note: "Without a circuit breaker, a slow/failing service can cascade failures across the entire system.",
+      variants: [{l:"Circuit Breaker concept + states", c:
+`/*
+  PROBLEM: Order-Service calls Payment-Service.
+  If Payment-Service is slow or down, Order-Service
+  threads pile up waiting → entire system crashes.
+
+  CIRCUIT BREAKER STATES:
+  ┌──────────┐    failures >= threshold    ┌──────────┐
+  │  CLOSED  │ ─────────────────────────► │   OPEN   │
+  │(normal)  │                            │(blocking)│
+  └──────────┘                            └──────────┘
+       ▲                                       │
+       │    success                            │ after wait duration
+       │                                       ▼
+       │                               ┌──────────────┐
+       └─────────────────────────────── │  HALF-OPEN   │
+                                        │ (test calls) │
+                                        └──────────────┘
+
+  CLOSED   → calls pass through normally
+  OPEN     → calls immediately fail (fallback runs) – no waiting
+  HALF-OPEN → allows limited calls to test if service recovered
+*/`}]
+    },
+    {
+      q: "How do you implement Circuit Breaker using Resilience4j with OpenFeign?",
+      variants: [
+        {l:"pom.xml + application.properties", c:
+`<!-- pom.xml -->
+<dependency>
+    <groupId>io.github.resilience4j</groupId>
+    <artifactId>resilience4j-spring-boot3</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-aop</artifactId>
+</dependency>
+
+# application.properties
+
+# Enable circuit breaker for Feign
+spring.cloud.openfeign.circuitbreaker.enabled=true
+
+# Circuit Breaker config
+resilience4j.circuitbreaker.instances.USER-SERVICE.register-health-indicator=true
+resilience4j.circuitbreaker.instances.USER-SERVICE.failure-rate-threshold=50
+resilience4j.circuitbreaker.instances.USER-SERVICE.minimum-number-of-calls=5
+resilience4j.circuitbreaker.instances.USER-SERVICE.automatic-transition-from-open-to-half-open-enabled=true
+resilience4j.circuitbreaker.instances.USER-SERVICE.wait-duration-in-open-state=5s
+resilience4j.circuitbreaker.instances.USER-SERVICE.permitted-number-of-calls-in-half-open-state=3
+resilience4j.circuitbreaker.instances.USER-SERVICE.sliding-window-size=10
+resilience4j.circuitbreaker.instances.USER-SERVICE.sliding-window-type=COUNT_BASED
+
+# Retry config
+resilience4j.retry.instances.USER-SERVICE.max-attempts=3
+resilience4j.retry.instances.USER-SERVICE.wait-duration=2s`},
+        {l:"@CircuitBreaker with fallback method", c:
+`@Service
+public class OrderService {
+
+    @Autowired
+    private UserServiceClient userServiceClient;
+
+    // Circuit Breaker – if user-service fails, use fallback
+    @CircuitBreaker(name = "USER-SERVICE", fallbackMethod = "getUserFallback")
+    public UserResponse getUserById(Long id) {
+        return userServiceClient.getUserById(id);
+    }
+
+    // Fallback – must have same return type and params + Throwable
+    public UserResponse getUserFallback(Long id, Throwable ex) {
+        System.out.println("Fallback triggered: " + ex.getMessage());
+        return new UserResponse(id, "Unknown User", "N/A"); // default response
+    }
+
+    // Retry + CircuitBreaker combined
+    @Retry(name = "USER-SERVICE")
+    @CircuitBreaker(name = "USER-SERVICE", fallbackMethod = "getUserFallback")
+    public UserResponse getUserWithRetry(Long id) {
+        return userServiceClient.getUserById(id);
+    }
+
+    // RateLimiter – limit calls per time period
+    @RateLimiter(name = "USER-SERVICE", fallbackMethod = "rateLimitFallback")
+    public UserResponse getUserRateLimited(Long id) {
+        return userServiceClient.getUserById(id);
+    }
+    public UserResponse rateLimitFallback(Long id, Throwable t) {
+        throw new RuntimeException("Rate limit exceeded. Try again later.");
+    }
+}`},
+        {l:"Feign client with fallback class", c:
+`// Feign client with fallback
+@FeignClient(name = "USER-SERVICE", fallback = UserServiceFallback.class)
+public interface UserServiceClient {
+    @GetMapping("/api/users/{id}")
+    UserResponse getUserById(@PathVariable Long id);
+}
+
+// Fallback implementation
+@Component
+public class UserServiceFallback implements UserServiceClient {
+    @Override
+    public UserResponse getUserById(Long id) {
+        System.out.println("USER-SERVICE is down. Returning default response.");
+        return new UserResponse(id, "Service Unavailable", "N/A");
+    }
+}`}
+      ]
+    }
+  ]
+},
+{
+  title: "Async Messaging – Kafka",
+  qs: [
+    {
+      q: "What is Apache Kafka and when do you use it in Microservices?",
+      note: "Use Kafka for async, event-driven communication between services. Decouples producer and consumer completely.",
+      variants: [{l:"Kafka concepts + use cases", c:
+`/*
+  KAFKA KEY CONCEPTS:
+  ─────────────────────────────────────────────────────
+  Producer   → service that publishes events/messages
+  Consumer   → service that subscribes and processes events
+  Topic      → named channel where events are published
+  Partition  → topics are split into partitions (parallelism)
+  Broker     → Kafka server that stores and serves messages
+  Consumer Group → group of consumers sharing the same topic load
+
+  MICROSERVICES USE CASES:
+  ─────────────────────────────────────────────────────
+  Order placed → notify payment-service + inventory-service
+  Payment done → notify order-service + notification-service
+  User created → notify email-service + analytics-service
+  Stock updated → notify pricing-service
+
+  KAFKA vs REST (Feign/RestTemplate):
+  REST   → synchronous, tight coupling, both services must be up
+  Kafka  → asynchronous, loose coupling, consumer can be down temporarily
+*/`}]
+    },
+    {
+      q: "How do you produce and consume Kafka messages in Spring Boot?",
+      variants: [
+        {l:"pom.xml + application.properties", c:
+`<!-- pom.xml -->
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
+
+# Producer service – application.properties
+spring.application.name=order-service
+spring.kafka.bootstrap-servers=localhost:9092
+spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
+
+# Consumer service – application.properties
+spring.kafka.bootstrap-servers=localhost:9092
+spring.kafka.consumer.group-id=notification-group
+spring.kafka.consumer.auto-offset-reset=earliest
+spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer
+spring.kafka.consumer.properties.spring.json.trusted.packages=*`},
+        {l:"Kafka Producer", c:
+`// Event DTO
+public class OrderEvent {
+    private Long orderId;
+    private Long userId;
+    private String status;
+    private Double totalAmount;
+    private LocalDateTime timestamp;
+    // constructors, getters, setters
+}
+
+// Producer Service
+@Service
+public class OrderEventProducer {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderEventProducer.class);
+
+    @Autowired
+    private KafkaTemplate<String, OrderEvent> kafkaTemplate;
+
+    private static final String TOPIC = "order-events";
+
+    public void publishOrderCreated(Order order) {
+        OrderEvent event = new OrderEvent(
+            order.getId(), order.getUserId(), "CREATED", order.getTotal(), LocalDateTime.now()
+        );
+        kafkaTemplate.send(TOPIC, String.valueOf(order.getId()), event)
+            .whenComplete((result, ex) -> {
+                if (ex == null) {
+                    log.info("Order event sent: orderId={}, partition={}, offset={}",
+                        order.getId(),
+                        result.getRecordMetadata().partition(),
+                        result.getRecordMetadata().offset());
+                } else {
+                    log.error("Failed to send order event: {}", ex.getMessage());
+                }
+            });
+    }
+}
+
+// Publish after order is saved
+@Service
+public class OrderService {
+    @Autowired private OrderRepository orderRepository;
+    @Autowired private OrderEventProducer eventProducer;
+
+    @Transactional
+    public Order createOrder(OrderRequest request) {
+        Order order = orderRepository.save(new Order(request));
+        eventProducer.publishOrderCreated(order);  // async publish
+        return order;
+    }
+}`},
+        {l:"Kafka Consumer", c:
+`// Consumer in notification-service
+@Service
+public class OrderEventConsumer {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderEventConsumer.class);
+
+    @Autowired private EmailService emailService;
+
+    @KafkaListener(topics = "order-events", groupId = "notification-group")
+    public void handleOrderEvent(OrderEvent event) {
+        log.info("Received order event: orderId={}, status={}", event.getOrderId(), event.getStatus());
+
+        if ("CREATED".equals(event.getStatus())) {
+            emailService.sendOrderConfirmation(event.getUserId(), event.getOrderId());
+        } else if ("CANCELLED".equals(event.getStatus())) {
+            emailService.sendOrderCancellation(event.getUserId(), event.getOrderId());
+        }
+    }
+
+    // Consume from multiple topics
+    @KafkaListener(topics = {"order-events", "payment-events"}, groupId = "audit-group")
+    public void auditEvents(String message) {
+        log.info("Audit log: {}", message);
+    }
+
+    // Listen to specific partition
+    @KafkaListener(topicPartitions = @TopicPartition(topic = "order-events",
+                   partitions = {"0", "1"}), groupId = "order-processing")
+    public void handleHighPriorityOrders(OrderEvent event) {
+        log.info("Processing high priority order: {}", event.getOrderId());
+    }
+}`},
+        {l:"Kafka Topic configuration", c:
+`// Create topics programmatically
+@Configuration
+public class KafkaTopicConfig {
+
+    @Bean
+    public NewTopic orderEventsTopic() {
+        return TopicBuilder.name("order-events")
+            .partitions(3)    // 3 partitions = 3 consumers can read in parallel
+            .replicas(1)      // 1 replica (use 3 in production)
+            .build();
+    }
+
+    @Bean
+    public NewTopic paymentEventsTopic() {
+        return TopicBuilder.name("payment-events")
+            .partitions(3)
+            .replicas(1)
+            .build();
+    }
+}`}
+      ]
+    },
+    {
+      q: "How do you use RabbitMQ for async messaging in Spring Boot?",
+      note: "RabbitMQ uses exchanges and queues. Better for complex routing; Kafka is better for high-throughput event streaming.",
+      variants: [
+        {l:"pom.xml + application.properties", c:
+`<!-- pom.xml -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+
+# application.properties
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest`},
+        {l:"RabbitMQ config + producer + consumer", c:
+`// Configuration
+@Configuration
+public class RabbitMQConfig {
+
+    public static final String QUEUE      = "order_queue";
+    public static final String EXCHANGE   = "order_exchange";
+    public static final String ROUTING_KEY = "order_routing_key";
+
+    @Bean
+    public Queue queue() { return new Queue(QUEUE, true); } // durable=true
+
+    @Bean
+    public TopicExchange exchange() { return new TopicExchange(EXCHANGE); }
+
+    @Bean
+    public Binding binding(Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter());
+        return template;
+    }
+}
+
+// Producer
+@Service
+public class OrderMessageProducer {
+    @Autowired private AmqpTemplate amqpTemplate;
+
+    public void sendOrderMessage(OrderEvent event) {
+        amqpTemplate.convertAndSend(
+            RabbitMQConfig.EXCHANGE, RabbitMQConfig.ROUTING_KEY, event);
+        System.out.println("Message sent: " + event);
+    }
+}
+
+// Consumer
+@Service
+public class OrderMessageConsumer {
+    @RabbitListener(queues = RabbitMQConfig.QUEUE)
+    public void consumeOrderMessage(OrderEvent event) {
+        System.out.println("Message received: " + event);
+        // process order event...
+    }
+}`}
+      ]
+    }
+  ]
+},
+{
+  title: "Distributed Tracing – Zipkin & Sleuth",
+  qs: [
+    {
+      q: "How do you implement distributed tracing with Zipkin in Spring Boot?",
+      note: "Distributed tracing lets you follow a request as it flows through multiple microservices. Each request gets a unique Trace ID.",
+      variants: [
+        {l:"pom.xml + configuration (Spring Boot 3.x)", c:
+`<!-- Spring Boot 3.x uses Micrometer Tracing + Zipkin -->
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-tracing-bridge-brave</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.zipkin.reporter2</groupId>
+    <artifactId>zipkin-reporter-brave</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.github.openfeign</groupId>
+    <artifactId>feign-micrometer</artifactId>
+</dependency>
+
+# application.properties
+spring.application.name=order-service
+
+# Zipkin server URL
+management.zipkin.tracing.endpoint=http://localhost:9411/api/v2/spans
+
+# Sampling rate: 1.0 = 100% of requests traced (use lower in production)
+management.tracing.sampling.probability=1.0
+
+# Enable trace IDs in logs
+logging.pattern.level=%5p [%X{traceId:-},%X{spanId:-}]`},
+        {l:"Run Zipkin server via Docker", c:
+`# Start Zipkin server with Docker
+docker run -d -p 9411:9411 openzipkin/zipkin
+
+# Access Zipkin UI at:
+# http://localhost:9411
+
+# What you see in Zipkin:
+# - Each request has a Trace ID (spans all services)
+# - Each service hop creates a Span (child of the Trace)
+# - Timeline view showing time spent in each service
+# - Dependency graph of all services
+
+# Log output example:
+# INFO [order-service,5e0f4e7a3b8a1c2d,3b8a1c2d5e0f4e7a] OrderService - Order created
+#                   ^traceId           ^spanId`}
+      ]
+    }
+  ]
+},
+{
+  title: "Centralized Logging – ELK Stack",
+  qs: [
+    {
+      q: "How do you set up centralized logging with ELK Stack for microservices?",
+      note: "ELK = Elasticsearch (storage+search) + Logstash (collect+transform) + Kibana (visualize). All service logs go to one place.",
+      variants: [
+        {l:"Logback + Logstash setup in each service", c:
+`<!-- pom.xml – add Logstash encoder -->
+<dependency>
+    <groupId>net.logstash.logback</groupId>
+    <artifactId>logstash-logback-encoder</artifactId>
+    <version>7.4</version>
+</dependency>
+
+<!-- logback-spring.xml (in src/main/resources) -->
+<configuration>
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:5000</destination>   <!-- Logstash port -->
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"order-service","env":"dev"}</customFields>
+        </encoder>
+    </appender>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="LOGSTASH" />
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>`},
+        {l:"Docker Compose for ELK Stack", c:
+`# docker-compose.yml
+version: '3'
+services:
+  elasticsearch:
+    image: elasticsearch:8.10.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+
+  logstash:
+    image: logstash:8.10.0
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+
+  kibana:
+    image: kibana:8.10.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+
+volumes:
+  es-data:
+
+# logstash.conf
+# input {
+#   tcp { port => 5000 codec => json }
+# }
+# output {
+#   elasticsearch {
+#     hosts => ["elasticsearch:9200"]
+#     index => "microservices-logs-%{+YYYY.MM.dd}"
+#   }
+# }
+# Kibana UI at: http://localhost:5601`}
+      ]
+    }
+  ]
+},
+{
+  title: "Docker & Docker Compose",
+  qs: [
+    {
+      q: "How do you containerize a Spring Boot microservice with Docker?",
+      variants: [
+        {l:"Dockerfile for Spring Boot app", c:
+`# Dockerfile (place in project root)
+
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline     # cache dependencies
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run (lightweight image)
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+# Copy jar from build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Expose port
+EXPOSE 8081
+
+# Run
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Build image:
+# docker build -t user-service:1.0 .
+
+# Run container:
+# docker run -d -p 8081:8081 --name user-service user-service:1.0`},
+        {l:"docker-compose.yml for full microservices setup", c:
+`version: '3.8'
+services:
+
+  # Infrastructure
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: microservicesdb
+    ports: ["3306:3306"]
+    volumes: [mysql-data:/var/lib/mysql]
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on: [zookeeper]
+    ports: ["9092:9092"]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports: ["9411:9411"]
+
+  # Microservices
+  service-registry:
+    build: ./service-registry
+    ports: ["8761:8761"]
+
+  config-server:
+    build: ./config-server
+    ports: ["8888:8888"]
+    depends_on: [service-registry]
+    environment:
+      EUREKA_SERVER: http://service-registry:8761/eureka/
+
+  api-gateway:
+    build: ./api-gateway
+    ports: ["8080:8080"]
+    depends_on: [service-registry, config-server]
+    environment:
+      EUREKA_SERVER: http://service-registry:8761/eureka/
+
+  user-service:
+    build: ./user-service
+    ports: ["8081:8081"]
+    depends_on: [mysql, service-registry, config-server]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/microservicesdb
+      EUREKA_SERVER: http://service-registry:8761/eureka/
+
+  order-service:
+    build: ./order-service
+    ports: ["8082:8082"]
+    depends_on: [mysql, kafka, service-registry, user-service]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/microservicesdb
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER: http://service-registry:8761/eureka/
+
+volumes:
+  mysql-data:`}
+      ]
+    }
+  ]
+},
+{
+  title: "Service Startup Order & Architecture",
+  qs: [
+    {
+      q: "What is the correct startup order for all microservice components?",
+      note: "Startup order matters — services that other services depend on must be ready first.",
+      variants: [{l:"Recommended startup sequence", c:
+`/*
+  STARTUP ORDER:
+  ──────────────────────────────────────────────────────
+  1.  Infrastructure first
+      ├── MySQL / PostgreSQL (database)
+      ├── Redis (cache)
+      ├── Zookeeper (required by Kafka)
+      └── Kafka (message broker)
+
+  2.  Spring Cloud infrastructure
+      ├── Config Server  (port 8888) – serves configs to all others
+      └── Service Registry / Eureka  (port 8761) – service discovery
+
+  3.  Core microservices (can start in parallel after step 2)
+      ├── user-service    (port 8081)
+      ├── product-service (port 8082)
+      ├── order-service   (port 8083)
+      └── payment-service (port 8084)
+
+  4.  Support services
+      └── notification-service (port 8085)
+
+  5.  API Gateway  (port 8080) – after all services are registered
+      └── Now routes to all services via Eureka
+
+  6.  Monitoring
+      ├── Zipkin         (port 9411)
+      └── Kibana/ELK     (port 5601)
+
+  CLIENT → API Gateway → [Eureka Lookup] → Microservice
+*/`}]
+    },
+    {
+      q: "What is the complete end-to-end flow of a request in a microservices system?",
+      variants: [{l:"Request flow with all components", c:
+`/*
+  CLIENT REQUEST FLOW:
+  ─────────────────────────────────────────────────────────────────────
+
+  1. CLIENT sends: POST http://localhost:8080/api/orders
+     with JWT token in header
+
+  2. API GATEWAY (port 8080)
+     ├── JWT Auth Filter validates the token
+     ├── Matches route: /api/orders/** → ORDER-SERVICE
+     ├── Looks up ORDER-SERVICE in Eureka
+     ├── Load balances across available instances
+     └── Forwards to: http://order-service-ip:8083/api/orders
+
+  3. ORDER-SERVICE (port 8083)
+     ├── Receives request
+     ├── Calls USER-SERVICE via Feign: GET /api/users/{id}
+     │   └── Circuit Breaker monitors this call
+     ├── Calls PRODUCT-SERVICE via Feign: GET /api/products/{id}
+     ├── Saves order to its own DB (MySQL)
+     ├── Publishes "ORDER_CREATED" event to Kafka topic
+     └── Returns OrderResponse to Gateway
+
+  4. KAFKA CONSUMERS (async, after response returned)
+     ├── PAYMENT-SERVICE consumes ORDER_CREATED → initiates payment
+     └── NOTIFICATION-SERVICE consumes ORDER_CREATED → sends email
+
+  5. DISTRIBUTED TRACING
+     └── Each hop adds a Span to the Trace → visible in Zipkin UI
+
+  6. LOGGING
+     └── All services log to Logstash → Elasticsearch → Kibana
+*/`}]
+    },
+    {
+      q: "What design patterns are commonly used in Microservices?",
+      variants: [{l:"Key microservices patterns", c:
+`/*
+  PATTERN                 PROBLEM IT SOLVES              SPRING TOOL
+  ────────────────────────────────────────────────────────────────────
+  API Gateway             Single entry point             Spring Cloud Gateway
+  Service Registry        Service discovery              Eureka
+  Config Externalization  Centralized config             Spring Cloud Config
+  Circuit Breaker         Fault tolerance                Resilience4j
+  Saga Pattern            Distributed transactions       Kafka / Orchestration
+  Database per Service    Data isolation                 Each service has own DB
+  Event Sourcing          Audit trail via events         Kafka
+  CQRS                    Separate read/write models     Custom implementation
+  Strangler Fig           Migrate monolith gradually     Incremental replacement
+  Sidecar                 Cross-cutting concerns         Istio / Envoy
+  Bulkhead                Isolate failures               Thread pool isolation
+  Retry                   Transient failures             Resilience4j Retry
+
+  SAGA PATTERN (for distributed transactions):
+  ─────────────────────────────────────────────────────────────────────
+  CHOREOGRAPHY (event-based):
+  Order → publishes OrderCreated
+  Payment → consumes, publishes PaymentDone
+  Inventory → consumes, publishes StockReduced
+  Each service knows what to do next
+
+  ORCHESTRATION (central coordinator):
+  OrderOrchestrator calls: PaymentService → InventoryService → NotificationService
+  If any step fails, orchestrator triggers compensating transactions (rollback)
+*/`}]
+    }
+  ]
+},
+{
+  title: "Security in Microservices",
+  qs: [
+    {
+      q: "How does JWT-based security work across multiple microservices?",
+      note: "The API Gateway validates the JWT once. Individual services can trust the forwarded token or re-validate.",
+      variants: [{l:"JWT flow across microservices", c:
+`/*
+  FLOW:
+  1. Client → POST /api/auth/login (public endpoint, no JWT needed)
+  2. auth-service validates credentials, issues JWT
+  3. Client includes JWT in every subsequent request:
+     Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+  4. API Gateway validates JWT on every request
+  5. Gateway forwards valid requests with token to downstream services
+  6. Downstream services can decode token (no DB call needed – stateless)
+*/
+
+// Auth Service – login endpoint
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    @Autowired private AuthenticationManager authManager;
+    @Autowired private JwtUtil jwtUtil;
+    @Autowired private UserDetailsService userDetailsService;
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+        authManager.authenticate(
+            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        String token = jwtUtil.generateToken(request.getEmail());
+        return ResponseEntity.ok(new AuthResponse(token));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody @Valid RegisterRequest request) {
+        authService.register(request);
+        return ResponseEntity.ok("User registered successfully");
+    }
+
+    // Validate token for other services to call
+    @GetMapping("/validate")
+    public ResponseEntity<String> validateToken(@RequestParam("token") String token) {
+        jwtUtil.validateToken(token);
+        return ResponseEntity.ok("Token is valid");
+    }
+}`}]
+    },
+    {
+      q: "How do you propagate security context between microservices?",
+      variants: [{l:"Forward JWT token via Feign interceptor", c:
+`// Feign Request Interceptor – forwards JWT to downstream services
+@Configuration
+public class FeignClientInterceptor implements RequestInterceptor {
+
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_TOKEN_TYPE = "Bearer";
+
+    @Override
+    public void apply(RequestTemplate template) {
+        // Get token from current request context
+        ServletRequestAttributes attrs =
+            (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        if (attrs != null) {
+            HttpServletRequest request = attrs.getRequest();
+            String authHeader = request.getHeader(AUTHORIZATION_HEADER);
+
+            if (StringUtils.hasText(authHeader) && authHeader.startsWith(BEARER_TOKEN_TYPE)) {
+                template.header(AUTHORIZATION_HEADER, authHeader);
+            }
+        }
+    }
+}
+
+// Register globally for all Feign clients
+@Configuration
+public class FeignConfig {
+    @Bean
+    public FeignClientInterceptor feignClientInterceptor() {
+        return new FeignClientInterceptor();
+    }
+}`}]
+    }
+  ]
+},
+{
+  title: "Load Balancing & Health Checks",
+  qs: [
+    {
+      q: "How does client-side load balancing work with Spring Cloud LoadBalancer?",
+      note: "Spring Cloud LoadBalancer replaced Ribbon. It distributes calls across multiple instances of a service registered in Eureka.",
+      variants: [{l:"Load balancer configuration and usage", c:
+`<!-- pom.xml -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+</dependency>
+
+# Run multiple instances of user-service:
+# Instance 1: server.port=8081
+# Instance 2: server.port=8082
+# Both register as "USER-SERVICE" in Eureka
+
+// @LoadBalanced tells Spring to use LoadBalancer with RestTemplate/WebClient
+@Bean
+@LoadBalanced
+public RestTemplate restTemplate() { return new RestTemplate(); }
+
+// When you call "USER-SERVICE", LoadBalancer:
+// 1. Fetches list of instances from Eureka: [8081, 8082]
+// 2. Picks one using Round Robin (default) or Random
+// 3. Replaces "USER-SERVICE" with actual IP:PORT
+
+// Custom load balancing strategy
+@Configuration
+public class LoadBalancerConfig {
+    @Bean
+    ReactorLoadBalancer<ServiceInstance> randomLoadBalancer(
+            Environment env, LoadBalancerClientFactory factory) {
+        String name = env.getProperty(LoadBalancerClientFactory.PROPERTY_NAME);
+        return new RandomLoadBalancer(
+            factory.getLazyProvider(name, ServiceInstanceListSupplier.class), name);
+    }
+}`}]
+    },
+    {
+      q: "How do you implement health checks for microservices?",
+      variants: [{l:"Actuator health endpoint + custom health indicator", c:
+`# application.properties
+management.endpoints.web.exposure.include=health,info,metrics
+management.endpoint.health.show-details=always
+management.health.circuitbreakers.enabled=true
+management.health.ratelimiters.enabled=true
+
+# Health check response:
+# GET http://localhost:8081/actuator/health
+# {
+#   "status": "UP",
+#   "components": {
+#     "db":            { "status": "UP" },
+#     "diskSpace":     { "status": "UP" },
+#     "kafka":         { "status": "UP" },
+#     "circuitBreakers": { "status": "UP" }
+#   }
+# }
+
+// Custom Health Indicator
+@Component
+public class ExternalApiHealthIndicator implements HealthIndicator {
+
+    @Autowired
+    private ExternalApiService externalApiService;
+
+    @Override
+    public Health health() {
+        try {
+            boolean isAlive = externalApiService.ping();
+            if (isAlive) {
+                return Health.up()
+                    .withDetail("External API", "Reachable")
+                    .build();
+            }
+            return Health.down()
+                .withDetail("External API", "Not reachable")
+                .build();
+        } catch (Exception e) {
+            return Health.down(e).build();
+        }
+    }
+}
+
+# Kubernetes / Docker readiness + liveness probes
+management.endpoint.health.probes.enabled=true
+# /actuator/health/liveness  → is app running?
+# /actuator/health/readiness → is app ready to accept traffic?`}]
+    }
+  ]
+}
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── CUSTOM Q's (localStorage) ──────────────────────────────────────────────────
+var CUSTOM_KEY = 'microservices_cheat_custom_qs';
+function loadCustom() { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]'); } catch(e){ return []; } }
+function saveCustom(a) { try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(a)); } catch(e){} }
+
+function getSections() {
+  var c = loadCustom();
+  if (c.length === 0) return SECTIONS;
+  return [{ title: '\u2B50 My Custom Questions', qs: c, isCustom: true }].concat(SECTIONS);
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function render(filter) {
+  var root = document.getElementById('root');
+  var noR  = document.getElementById('noResults');
+  filter = (filter||'').toLowerCase().trim();
+  var html = '', total = 0;
+  var all = getSections();
+
+  for (var si = 0; si < all.length; si++) {
+    var sec = all[si], isC = !!sec.isCustom, items = [];
+    for (var qi = 0; qi < sec.qs.length; qi++) {
+      var q = sec.qs[qi];
+      if (!filter) { items.push({q:q,idx:qi}); continue; }
+      var hit = q.q.toLowerCase().indexOf(filter)>=0 || ((q.note||'').toLowerCase().indexOf(filter)>=0);
+      if (!hit) for (var vi=0;vi<q.variants.length;vi++) {
+        if (q.variants[vi].l.toLowerCase().indexOf(filter)>=0 || q.variants[vi].c.toLowerCase().indexOf(filter)>=0){ hit=true; break; }
+      }
+      if (hit) items.push({q:q,idx:qi});
+    }
+    if (!items.length) continue;
+    total += items.length;
+    html += '<div class="section-wrap"><div class="section-title">'+esc(sec.title)+'</div>';
+    for (var ii=0;ii<items.length;ii++) {
+      var item=items[ii].q;
+      var noteHtml = item.note ? '<div class="note">&#128204; '+esc(item.note)+'</div>' : '';
+      var vHtml = '';
+      for (var vv=0;vv<item.variants.length;vv++) {
+        var v=item.variants[vv];
+        vHtml += '<div class="variant"><div class="vlabel">'+esc(v.l)+'</div><pre>'+esc(v.c)+'</pre></div>';
+      }
+      html += '<div class="q-card'+(isC?' custom-card':'')+'">'+
+              '<div class="q-trigger"><div class="q-text">'+esc(item.q)+'</div><div class="chevron">&#9660;</div></div>'+
+              '<div class="q-body">'+noteHtml+vHtml+'</div></div>';
+    }
+    html += '</div>';
+  }
+  root.innerHTML = html;
+  noR.style.display = total===0 ? 'block' : 'none';
+}
+
+// ── ACCORDION ──────────────────────────────────────────────────────────────────
+document.getElementById('root').addEventListener('click', function(e) {
+  var el = e.target;
+  while (el && el !== this) {
+    if (el.classList.contains('q-trigger')) {
+      var card = el.closest ? el.closest('.q-card') : el.parentElement;
+      if (card) card.classList.toggle('open');
+      return;
+    }
+    el = el.parentElement;
+  }
+});
+
+document.getElementById('searchBox').addEventListener('input', function(){ render(this.value); });
+
+// ── MODAL ──────────────────────────────────────────────────────────────────────
+var variantCount = 1;
+
+function openModal() {
+  variantCount = 1;
+  document.getElementById('qTitle').value = '';
+  document.getElementById('qNote').value = '';
+  document.getElementById('variantsWrap').innerHTML = makeVariantBlock(0);
+  document.getElementById('addModal').style.display = 'flex';
+  document.getElementById('qTitle').focus();
+}
+function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+function makeVariantBlock(idx) {
+  return '<div class="variant-block" id="vb'+idx+'">'+
+    '<div class="vb-header"><span class="vb-label">Answer / Variant '+(idx+1)+'</span>'+
+    (idx>0 ? '<button type="button" class="rm-variant" onclick="removeVariant('+idx+')">&#10005; Remove</button>' : '')+
+    '</div>'+
+    '<input type="text" class="modal-input" id="vLabel'+idx+'" placeholder="Label (e.g. Kafka Producer setup)" />'+
+    '<textarea class="modal-code" id="vCode'+idx+'" rows="7" placeholder="Paste your code here..."></textarea>'+
+    '</div>';
+}
+function addVariant() {
+  document.getElementById('variantsWrap').insertAdjacentHTML('beforeend', makeVariantBlock(variantCount));
+  variantCount++;
+}
+function removeVariant(idx) { var e=document.getElementById('vb'+idx); if(e) e.remove(); }
+
+function saveQuestion() {
+  var title = document.getElementById('qTitle').value.trim();
+  var note  = document.getElementById('qNote').value.trim();
+  if (!title) { alert('Please enter a question title.'); return; }
+  var variants = [];
+  for (var i=0;i<variantCount;i++) {
+    var lEl=document.getElementById('vLabel'+i), cEl=document.getElementById('vCode'+i);
+    if (!lEl||!cEl) continue;
+    var l=lEl.value.trim(), c=cEl.value.trim();
+    if (!l&&!c) continue;
+    variants.push({l: l||'Solution', c: c});
+  }
+  if (!variants.length) { alert('Please add at least one answer/variant.'); return; }
+  var newQ = {q:title, variants:variants};
+  if (note) newQ.note = note;
+  var c = loadCustom(); c.push(newQ); saveCustom(c);
+  closeModal();
+  render(document.getElementById('searchBox').value);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('addModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+render('');
+</script>
+</body>
+</html>

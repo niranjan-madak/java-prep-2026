@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Interview Cheat Sheet</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0d1117; color: #e2e8f0; min-height: 100vh; padding-bottom: 80px;
+}
+header {
+  background: linear-gradient(135deg, #1a2a1a 0%, #0d1117 100%);
+  padding: 22px 16px 18px; text-align: center; border-bottom: 2px solid #22c55e;
+}
+header h1 { font-size: 1.45rem; color: #22c55e; font-weight: 800; letter-spacing: -0.3px; }
+header p  { font-size: 0.82rem; color: #94a3b8; margin-top: 5px; }
+.sticky-bar {
+  position: sticky; top: 0; z-index: 200; background: #161b22;
+  border-bottom: 1px solid #21262d; padding: 10px 12px;
+}
+.sticky-bar input {
+  width: 100%; padding: 9px 14px; border-radius: 8px; border: 1px solid #30363d;
+  background: #0d1117; color: #e2e8f0; font-size: 0.92rem; outline: none;
+}
+.sticky-bar input:focus { border-color: #22c55e; }
+.sticky-bar input::placeholder { color: #484f58; }
+.section-wrap { margin: 14px 10px 4px; }
+.section-title {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.6px;
+  color: #22c55e; font-weight: 800; padding-bottom: 7px;
+  border-bottom: 1px solid #1a2a1a; margin-bottom: 8px;
+}
+.q-card {
+  background: #161b22; border: 1px solid #21262d;
+  border-radius: 10px; margin-bottom: 7px; overflow: hidden;
+}
+.q-card.open { border-color: #22c55e; }
+.q-trigger {
+  display: flex; align-items: center; gap: 10px; padding: 13px 14px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.q-trigger:active { background: #1c2128; }
+.q-text { flex: 1; font-size: 0.88rem; font-weight: 600; color: #c9d1d9; line-height: 1.35; }
+.q-card.open .q-text { color: #4ade80; }
+.chevron {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: #21262d; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #8b949e; transition: transform 0.22s ease, background 0.2s;
+}
+.q-card.open .chevron { transform: rotate(180deg); background: #22c55e; color: #0d1117; }
+.q-body { display: none; border-top: 1px solid #21262d; }
+.q-card.open .q-body { display: block; }
+.note {
+  margin: 10px 14px 0; background: #0d1117; border-left: 3px solid #22c55e;
+  border-radius: 0 6px 6px 0; padding: 8px 11px; font-size: 0.78rem;
+  color: #8b949e; line-height: 1.55;
+}
+.variant { padding: 10px 14px 12px; border-bottom: 1px solid #0d1117; }
+.variant:last-child { border-bottom: none; }
+.vlabel {
+  font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: #22c55e; margin-bottom: 7px;
+}
+pre {
+  background: #010409; border: 1px solid #1a2a1a; border-radius: 7px;
+  padding: 12px; overflow-x: auto; font-family: 'Courier New', monospace;
+  font-size: 0.74rem; line-height: 1.7; color: #79c0ff; white-space: pre;
+}
+.no-results { text-align: center; padding: 50px 20px; color: #30363d; font-size: 0.9rem; }
+/* FAB */
+#fabBtn {
+  position: fixed; bottom: 24px; right: 20px; width: 54px; height: 54px;
+  border-radius: 50%; background: #22c55e; color: #0d1117; font-size: 2rem;
+  font-weight: 300; border: none; cursor: pointer;
+  box-shadow: 0 4px 18px rgba(34,197,94,0.45); z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1; transition: transform 0.15s;
+}
+#fabBtn:active { transform: scale(0.92); }
+/* Modal */
+#addModal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 1000;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+@media (min-width: 600px) { #addModal { align-items: center; padding: 20px; } }
+#modalBox {
+  background: #161b22; border-radius: 16px 16px 0 0; width: 100%;
+  max-width: 620px; max-height: 92vh; display: flex; flex-direction: column;
+  overflow: hidden; border: 1px solid #22c55e;
+}
+@media (min-width: 600px) { #modalBox { border-radius: 16px; } }
+#modalHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid #21262d; flex-shrink: 0;
+}
+#modalTitle { font-size: 1rem; font-weight: 700; color: #22c55e; }
+#modalClose {
+  background: #21262d; border: none; color: #8b949e; width: 28px; height: 28px;
+  border-radius: 50%; cursor: pointer; font-size: 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+}
+#modalBody { padding: 16px 18px; overflow-y: auto; flex: 1; }
+.modal-label {
+  display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: #22c55e; margin-bottom: 6px; margin-top: 14px;
+}
+.modal-label:first-child { margin-top: 0; }
+.modal-input {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #30363d;
+  background: #0d1117; color: #e2e8f0; font-size: 0.88rem; outline: none; margin-bottom: 2px;
+}
+.modal-input:focus { border-color: #22c55e; }
+.modal-code {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #30363d;
+  background: #010409; color: #79c0ff; font-family: 'Courier New', monospace;
+  font-size: 0.78rem; line-height: 1.6; outline: none; resize: vertical; margin-bottom: 2px;
+}
+.modal-code:focus { border-color: #22c55e; }
+.variant-block {
+  background: #0d1117; border: 1px solid #21262d; border-radius: 8px;
+  padding: 12px; margin-bottom: 10px;
+}
+.vb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.vb-label { font-size: 0.75rem; font-weight: 700; color: #8b949e; }
+.rm-variant {
+  background: #161b22; border: 1px solid #30363d; color: #ef4444;
+  border-radius: 5px; padding: 3px 8px; font-size: 0.7rem; cursor: pointer;
+}
+#addVariantBtn {
+  width: 100%; padding: 9px; margin-top: 4px; background: transparent;
+  border: 1px dashed #30363d; color: #8b949e; border-radius: 7px;
+  font-size: 0.82rem; cursor: pointer; transition: border-color 0.2s, color 0.2s;
+}
+#addVariantBtn:hover, #addVariantBtn:active { border-color: #22c55e; color: #22c55e; }
+#modalFooter {
+  display: flex; gap: 10px; padding: 14px 18px;
+  border-top: 1px solid #21262d; flex-shrink: 0;
+}
+#cancelBtn {
+  flex: 1; padding: 11px; border-radius: 8px; border: 1px solid #30363d;
+  background: transparent; color: #8b949e; font-size: 0.9rem; cursor: pointer;
+}
+#saveBtn {
+  flex: 2; padding: 11px; border-radius: 8px; border: none;
+  background: #22c55e; color: #0d1117; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+}
+#saveBtn:active { background: #16a34a; }
+.custom-card { border-color: #14532d !important; }
+.custom-card.open { border-color: #22c55e !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SQL Interview Cheat Sheet</h1>
+  <p>Tap a question to see the SQL solution &bull; Tap <strong>+</strong> to add your own</p>
+</header>
+
+<div class="sticky-bar">
+  <input type="text" id="searchBox" placeholder="Search (e.g. salary, join, duplicate, date...)" />
+</div>
+
+<div id="root"></div>
+<div id="noResults" class="no-results" style="display:none">No matches found.</div>
+
+<!-- FAB -->
+<button id="fabBtn" onclick="openModal()" title="Add new question">+</button>
+
+<!-- Modal -->
+<div id="addModal" style="display:none">
+  <div id="modalBox">
+    <div id="modalHeader">
+      <span id="modalTitle">Add New Question</span>
+      <button id="modalClose" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div id="modalBody">
+      <label class="modal-label">Question Title *</label>
+      <input type="text" class="modal-input" id="qTitle" placeholder="e.g. Find employees with NULL department?" />
+      <label class="modal-label">Note / Tip (optional)</label>
+      <input type="text" class="modal-input" id="qNote" placeholder="e.g. Use IS NULL not = NULL" />
+      <label class="modal-label" style="margin-top:16px">Answers / Variants</label>
+      <div id="variantsWrap"></div>
+      <button id="addVariantBtn" type="button" onclick="addVariant()">+ Add Another Variant</button>
+    </div>
+    <div id="modalFooter">
+      <button id="cancelBtn" onclick="closeModal()">Cancel</button>
+      <button id="saveBtn" onclick="saveQuestion()">Save Question</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var SECTIONS = [
+{
+  title: "Salary & Employee Queries",
+  qs: [
+    {
+      q: "Find the Nth highest salary from the employee table",
+      note: "LIMIT offset,count — offset is 0-based. So for 5th highest, use LIMIT 4,1.",
+      variants: [
+        { l: "Using LIMIT with offset (Nth highest)", c:
+"-- For Nth highest (e.g. 5th highest: LIMIT 4,1)\nSELECT salary\nFROM employee\nORDER BY salary DESC\nLIMIT 4, 1;" },
+        { l: "Second highest using MAX + NOT IN", c:
+"SELECT MAX(Salary)\nFROM Employee\nWHERE Salary NOT IN (SELECT MAX(Salary) FROM Employee);\n\n-- OR\nSELECT MAX(Salary)\nFROM Employee\nWHERE Salary < (SELECT MAX(Salary) FROM Employee);" }
+      ]
+    },
+    {
+      q: "Find the Nth lowest salary from the employee table",
+      variants: [
+        { l: "Using LIMIT with ASC order", c:
+"-- For Nth lowest (e.g. 5th lowest: LIMIT 4,1)\nSELECT salary\nFROM employee\nORDER BY salary ASC\nLIMIT 4, 1;" }
+      ]
+    },
+    {
+      q: "Find max salary from each department",
+      note: "Use RIGHT OUTER JOIN with Department table if you want department names instead of IDs.",
+      variants: [
+        { l: "Using GROUP BY with department ID", c:
+"SELECT DeptID, MAX(Salary)\nFROM Employee\nGROUP BY DeptID;" },
+        { l: "With department name (RIGHT JOIN)", c:
+"SELECT DeptName, MAX(Salary)\nFROM Employee e RIGHT JOIN Department d\n    ON e.DeptId = d.DeptID\nGROUP BY DeptName;" }
+      ]
+    },
+    {
+      q: "Find the top 3 highest salaries from employee table",
+      variants: [
+        { l: "Using LIMIT", c:
+"SELECT salary\nFROM employee\nORDER BY salary DESC\nLIMIT 3;" },
+        { l: "Using LIMIT with offset", c:
+"-- LIMIT 0,3 → start from row 0, return 3 rows\nSELECT salary\nFROM employee\nORDER BY salary DESC\nLIMIT 0, 3;" }
+      ]
+    },
+    {
+      q: "Find all employees whose salary is greater than 10000",
+      variants: [
+        { l: "Using WHERE with >= operator", c:
+"SELECT EmpName\nFROM Employee\nWHERE Salary >= 10000;" },
+        { l: "Select all columns", c:
+"SELECT *\nFROM Employee\nWHERE salary > 10000;" }
+      ]
+    },
+    {
+      q: "Find all employees whose salary is between 40000 and 80000",
+      variants: [
+        { l: "Using BETWEEN", c:
+"SELECT *\nFROM employee\nWHERE salary BETWEEN 40000 AND 80000;" }
+      ]
+    },
+    {
+      q: "Find all employees who have higher salary than the average salary of their department",
+      note: "The subquery recalculates the average per department for each employee row — a correlated subquery.",
+      variants: [
+        { l: "Correlated subquery", c:
+"SELECT *\nFROM employee e\nWHERE e.emp_salary > (\n    SELECT AVG(e2.emp_salary)\n    FROM employee e2\n    WHERE e.dpt_id = e2.dpt_id\n);" }
+      ]
+    },
+    {
+      q: "Find the employee who is earning the maximum salary in their department",
+      variants: [
+        { l: "Using correlated subquery (single table)", c:
+"SELECT e.department, e.name, e.salary\nFROM employee e\nWHERE e.salary = (\n    SELECT MAX(e2.salary)\n    FROM employee e2\n    WHERE e2.department = e.department\n);" },
+        { l: "With departments table (LEFT JOIN)", c:
+"SELECT e.emp_name, e.emp_salary, d.dpt_name\nFROM employee e\nLEFT JOIN departments d ON e.dpt_id = d.dpt_id\nWHERE e.emp_salary = (\n    SELECT MAX(e2.emp_salary)\n    FROM employee e2\n    WHERE e.dpt_id = e2.dpt_id\n);" }
+      ]
+    },
+    {
+      q: "Find all students whose marks are greater than the average marks (above-average students)",
+      variants: [
+        { l: "Using subquery with AVG()", c:
+"SELECT name, marks\nFROM student\nWHERE marks > (SELECT AVG(marks) FROM student);" }
+      ]
+    },
+    {
+      q: "Find employees not assigned a computer",
+      note: "Assumes a column 'computer_assigned' where NULL means not assigned.",
+      variants: [
+        { l: "Using IS NULL", c:
+"SELECT *\nFROM employee\nWHERE computer_assigned IS NULL;" }
+      ]
+    }
+  ]
+},
+{
+  title: "Duplicate Records",
+  qs: [
+    {
+      q: "Find duplicate rows in a table",
+      note: "Use HAVING COUNT(*) > 1 to detect duplicates. Add all columns that define uniqueness to GROUP BY.",
+      variants: [
+        { l: "Duplicate on name + email columns", c:
+"SELECT name, email, COUNT(*)\nFROM employee\nGROUP BY name, email\nHAVING COUNT(*) > 1;" }
+      ]
+    },
+    {
+      q: "Delete duplicate records from employee table (keep highest ID)",
+      note: "e1.id < e2.id keeps the highest ID. Use e1.id > e2.id to keep the lowest ID instead.",
+      variants: [
+        { l: "Self JOIN DELETE (single duplicate column)", c:
+"DELETE e1\nFROM employee e1\nINNER JOIN employee e2\nWHERE e1.id < e2.id\n  AND e1.name = e2.name;" },
+        { l: "Self JOIN DELETE (name + email duplicates)", c:
+"DELETE e1\nFROM employee e1\nINNER JOIN employee e2\nWHERE e1.id < e2.id\n  AND e1.name = e2.name\n  AND e1.email = e2.email;" }
+      ]
+    }
+  ]
+},
+{
+  title: "Date & Time Functions",
+  qs: [
+    {
+      q: "Display the current date and time",
+      variants: [
+        { l: "Current date + time", c:
+"SELECT NOW() AS current_date_time;" },
+        { l: "Current date only", c:
+"SELECT CURDATE() AS date;\n-- OR\nSELECT CURRENT_DATE() AS date;" },
+        { l: "Current time only", c:
+"SELECT CURRENT_TIME() AS time;" }
+      ]
+    },
+    {
+      q: "Display the last day of the current month (date and day name)",
+      variants: [
+        { l: "Last date of current month", c:
+"SELECT LAST_DAY(CURDATE()) AS last_day_of_current_month;\n-- Output: 2024-09-30" },
+        { l: "Last day name of current month", c:
+"SELECT DAYNAME(LAST_DAY(CURDATE())) AS last_day_name;\n-- Output: Monday" }
+      ]
+    },
+    {
+      q: "Find the last day name of the previous month and next month",
+      variants: [
+        { l: "Previous month last day name", c:
+"SELECT DAYNAME(LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)))\n    AS last_day_previous_month;" },
+        { l: "Next month last day name", c:
+"SELECT DAYNAME(LAST_DAY(DATE_ADD(CURDATE(), INTERVAL 1 MONTH)))\n    AS last_day_next_month;" }
+      ]
+    },
+    {
+      q: "Find the year from the current date",
+      variants: [
+        { l: "YEAR() function", c:
+"SELECT YEAR(CURDATE()) AS current_year;" }
+      ]
+    },
+    {
+      q: "Find all employees who joined the company in the year 2020",
+      variants: [
+        { l: "YEAR() on DOJ column", c:
+"SELECT *\nFROM employee\nWHERE YEAR(DOJ) = 2020;" }
+      ]
+    },
+    {
+      q: "Print employees whose DOB is between 01/01/1960 and 31/12/1975",
+      note: "Use STR_TO_DATE() when date format doesn't match DB default (YYYY-MM-DD).",
+      variants: [
+        { l: "BETWEEN with standard date format", c:
+"SELECT DISTINCT EmpName\nFROM Employee\nWHERE DOB BETWEEN '1960-01-01' AND '1975-12-31';" },
+        { l: "Using STR_TO_DATE() for custom format", c:
+"SELECT gender, COUNT(*) AS total_number\nFROM employee\nWHERE DOB BETWEEN\n    STR_TO_DATE('01/01/1960', '%d/%m/%Y')\n    AND STR_TO_DATE('31/12/1975', '%d/%m/%Y')\nGROUP BY gender;" }
+      ]
+    },
+    {
+      q: "Update the date of joining (DOJ) for a specific employee",
+      variants: [
+        { l: "UPDATE with WHERE clause", c:
+"UPDATE employee\nSET DOJ = '2022-10-27'\nWHERE emp_id = 3;" }
+      ]
+    }
+  ]
+},
+{
+  title: "String Functions",
+  qs: [
+    {
+      q: "Display the full name of employees by concatenating first and last name",
+      variants: [
+        { l: "Using CONCAT()", c:
+"SELECT CONCAT(first_name, ' ', last_name) AS full_name\nFROM employee;" }
+      ]
+    },
+    {
+      q: "Use CONCAT() to join two column values with a delimiter",
+      variants: [
+        { l: "CONCAT with delimiter '->'", c:
+"SELECT CONCAT(name, designation, '->') AS formatted\nFROM employee\nWHERE name = 'niranjan';\n\n-- Output: niranjan -> Senior Associate Consultant" }
+      ]
+    },
+    {
+      q: "Fetch the domain name from an email address",
+      variants: [
+        { l: "SUBSTRING_INDEX() – after '@'", c:
+"SELECT emp_email,\n    SUBSTRING_INDEX(emp_email, '@', -1) AS domain_name\nFROM employee;\n\n-- Output: nmadak28@gmail.com → gmail.com" }
+      ]
+    },
+    {
+      q: "Fetch the username (local part) from an email address",
+      variants: [
+        { l: "SUBSTRING_INDEX() – before '@'", c:
+"SELECT emp_email,\n    SUBSTRING_INDEX(emp_email, '@', 1) AS user_name\nFROM employee;\n\n-- Output: nmadak28@gmail.com → nmadak28" }
+      ]
+    },
+    {
+      q: "Remove leading and trailing spaces from employee names",
+      variants: [
+        { l: "UPDATE with TRIM()", c:
+"UPDATE employee\nSET name = TRIM(name);" }
+      ]
+    },
+    {
+      q: "Replace a character in a column (e.g. replace 'a' with '@' in first_name)",
+      variants: [
+        { l: "REPLACE() function", c:
+"SELECT first_name,\n    REPLACE(first_name, 'a', '@') AS modified_first_name\nFROM employee;\n\n-- Replaces ALL occurrences of 'a' with '@'" }
+      ]
+    }
+  ]
+},
+{
+  title: "Pattern Matching (LIKE & IN)",
+  qs: [
+    {
+      q: "Find employees whose name starts with 'M'",
+      variants: [
+        { l: "LIKE with % wildcard", c:
+"SELECT *\nFROM Employee\nWHERE EmpName LIKE 'M%';" }
+      ]
+    },
+    {
+      q: "Find employees whose name ends with 'n'",
+      variants: [
+        { l: "LIKE with % at start", c:
+"SELECT name\nFROM employee\nWHERE name LIKE '%n';" }
+      ]
+    },
+    {
+      q: "Find all employee records containing the word 'Joe' (case-insensitive)",
+      variants: [
+        { l: "UPPER() + LIKE", c:
+"SELECT *\nFROM Employee\nWHERE UPPER(EmpName) LIKE '%JOE%';" }
+      ]
+    },
+    {
+      q: "Find employees whose first_name ends with 'a' and has exactly 4 characters",
+      note: "Each underscore (_) represents exactly one character in a LIKE pattern.",
+      variants: [
+        { l: "LIKE '___a' pattern", c:
+"SELECT *\nFROM employees\nWHERE first_name LIKE '___a';\n\n-- 3 underscores + 'a' = exactly 4 characters ending with 'a'" }
+      ]
+    },
+    {
+      q: "Find employees whose first_name starts with 'a' and has exactly 4 characters",
+      variants: [
+        { l: "LIKE 'a___' pattern", c:
+"SELECT *\nFROM employees\nWHERE first_name LIKE 'a___';\n\n-- 'a' + 3 underscores = exactly 4 characters starting with 'a'" }
+      ]
+    },
+    {
+      q: "Find all employees whose first_name includes 'Anushka' or 'Niranjan' (partial match)",
+      variants: [
+        { l: "LIKE with OR", c:
+"SELECT *\nFROM employee\nWHERE first_name LIKE '%Anushka%'\n   OR first_name LIKE '%Niranjan%';" }
+      ]
+    },
+    {
+      q: "Find all employees whose first_name is exactly 'Anushka' or 'Niranjan'",
+      variants: [
+        { l: "IN operator (exact match)", c:
+"SELECT *\nFROM employees\nWHERE first_name IN ('Anushka', 'Niranjan');" }
+      ]
+    },
+    {
+      q: "Print all distinct (unique) employees from the table",
+      variants: [
+        { l: "SELECT DISTINCT *", c:
+"SELECT DISTINCT *\nFROM employee;" },
+        { l: "DISTINCT by name (DOB range filter)", c:
+"SELECT DISTINCT EmpName\nFROM Employee\nWHERE DOB BETWEEN '1960-01-01' AND '1975-12-31';" }
+      ]
+    }
+  ]
+},
+{
+  title: "JOINs & Self JOIN",
+  qs: [
+    {
+      q: "Print each employee's name and their manager's name",
+      note: "This is a Self JOIN — joining the employee table with itself using mgr_id = emp_id.",
+      variants: [
+        { l: "Explicit INNER JOIN (shows only employees WITH a manager)", c:
+"SELECT e1.emp_name, e2.emp_name AS manager_name\nFROM employee e1\nJOIN employee e2 ON e2.emp_id = e1.mgr_id;" },
+        { l: "Implicit INNER JOIN (same result)", c:
+"SELECT e1.emp_name, e2.emp_name AS manager\nFROM employee e1, employee e2\nWHERE e2.emp_id = e1.mgr_id;" },
+        { l: "LEFT JOIN (includes employees WITHOUT a manager)", c:
+"SELECT e1.emp_name, e2.emp_name AS manager_name\nFROM employee e1\nLEFT JOIN employee e2 ON e2.emp_id = e1.mgr_id;" }
+      ]
+    },
+    {
+      q: "Find all employees who are also managers",
+      variants: [
+        { l: "Using DISTINCT + Self JOIN (implicit)", c:
+"SELECT DISTINCT e2.emp_name\nFROM employee e1, employee e2\nWHERE e2.emp_id = e1.mgr_id;" },
+        { l: "Using explicit JOIN", c:
+"SELECT DISTINCT e1.emp_name AS manager_name\nFROM employee e1\nJOIN employee e2 ON e1.emp_id = e2.mgr_id;" }
+      ]
+    },
+    {
+      q: "Find employees who earn MORE than their managers",
+      variants: [
+        { l: "Self JOIN with salary comparison", c:
+"SELECT e1.emp_name\nFROM employee e1\nJOIN employee e2 ON e1.mgr_id = e2.emp_id\nWHERE e1.emp_salary > e2.emp_salary;" },
+        { l: "With more detail (employee vs manager salary)", c:
+"SELECT e1.emp_name, e1.emp_salary,\n       e2.emp_name AS manager_name, e2.emp_salary AS mgr_salary\nFROM employee e1, employee e2\nWHERE e1.mgr_id = e2.emp_id\n  AND e1.emp_salary > e2.emp_salary;" }
+      ]
+    },
+    {
+      q: "Print all departments and the number of employees in each",
+      note: "Use COUNT(primary_key) instead of COUNT(*) — COUNT(*) counts NULLs too.",
+      variants: [
+        { l: "With separate departments table (LEFT JOIN)", c:
+"SELECT d.dpt_name, COUNT(e.emp_id) AS total_employee\nFROM departments d\nLEFT JOIN employee e ON d.dpt_id = e.dpt_id\nGROUP BY d.dpt_id;" }
+      ]
+    },
+    {
+      q: "Print average salary of each department",
+      variants: [
+        { l: "GROUP BY department", c:
+"SELECT e.dpt_id, AVG(e.emp_salary)\nFROM employee e\nGROUP BY e.dpt_id;" },
+        { l: "Average salary of a specific department", c:
+"SELECT AVG(e.emp_salary)\nFROM employee e\nWHERE e.dpt_id = 1;" }
+      ]
+    }
+  ]
+},
+{
+  title: "Grouping, Filtering & Counting",
+  qs: [
+    {
+      q: "Find the number of employees by gender (DOB filtered)",
+      variants: [
+        { l: "COUNT + GROUP BY gender", c:
+"SELECT sex, COUNT(*) AS total_number\nFROM Employee\nWHERE DOB BETWEEN '1960-01-01' AND '1975-12-31'\nGROUP BY sex;" }
+      ]
+    },
+    {
+      q: "Fetch department-wise employee count sorted by count (ascending)",
+      variants: [
+        { l: "Single table", c:
+"SELECT department, COUNT(*) AS employee_count\nFROM employee\nGROUP BY department\nORDER BY employee_count ASC;" },
+        { l: "With departments table (LEFT JOIN)", c:
+"SELECT d.dpt_name, COUNT(e.emp_name) AS total_employee\nFROM departments d\nLEFT JOIN employee e ON d.dpt_id = e.dpt_id\nGROUP BY d.dpt_id\nORDER BY total_employee ASC;" }
+      ]
+    },
+    {
+      q: "Fetch departments that have fewer than 4 employees",
+      note: "HAVING is used to filter aggregated groups — like WHERE but for GROUP BY results.",
+      variants: [
+        { l: "Using HAVING", c:
+"SELECT department, COUNT(*) AS employee_count\nFROM employee\nGROUP BY department\nHAVING COUNT(*) < 4;" },
+        { l: "With departments table", c:
+"SELECT d.dpt_name, COUNT(e.emp_name) AS total_employee\nFROM departments d\nLEFT JOIN employee e ON d.dpt_id = e.dpt_id\nGROUP BY d.dpt_id\nHAVING total_employee < 4;" },
+        { l: "Using subquery (alternate)", c:
+"SELECT *\nFROM (\n    SELECT d.dpt_name, COUNT(e.emp_name) AS total_employee\n    FROM departments d\n    LEFT JOIN employee e ON d.dpt_id = e.dpt_id\n    GROUP BY d.dpt_id\n) AS temp\nWHERE temp.total_employee < 4;" }
+      ]
+    },
+    {
+      q: "Find department-wise maximum salary",
+      variants: [
+        { l: "Single table", c:
+"SELECT department, MAX(salary) AS max_salary\nFROM employee\nGROUP BY department;" },
+        { l: "With departments table (LEFT JOIN)", c:
+"SELECT d.dpt_name, MAX(e.emp_salary) AS max_salary\nFROM departments d\nLEFT JOIN employee e ON d.dpt_id = e.dpt_id\nGROUP BY e.dpt_id;" }
+      ]
+    },
+    {
+      q: "Count total records in a table (all ways)",
+      variants: [
+        { l: "COUNT(*) — includes NULLs", c:
+"SELECT COUNT(*)\nFROM table_name;" },
+        { l: "COUNT(column_name) — excludes NULLs", c:
+"SELECT COUNT(column_name)\nFROM table_name;" },
+        { l: "COUNT(DISTINCT column_name)", c:
+"SELECT COUNT(DISTINCT column_name)\nFROM table_name;" },
+        { l: "Using INFORMATION_SCHEMA.TABLES", c:
+"SELECT TABLE_ROWS\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_SCHEMA = 'database_name'\n  AND TABLE_NAME = 'table_name';" }
+      ]
+    },
+    {
+      q: "Find record count without using COUNT() function",
+      variants: [
+        { l: "INFORMATION_SCHEMA.TABLES", c:
+"SELECT TABLE_ROWS\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_SCHEMA = 'sql_query_learnings'\n  AND TABLE_NAME = 'employee';" }
+      ]
+    },
+    {
+      q: "Fetch the first 50% of records from a table",
+      note: "MySQL does not allow a subquery directly inside LIMIT — use PREPARE/EXECUTE with a variable. Use CEIL() to round up (e.g. 9 rows → 5 rows).",
+      variants: [
+        { l: "Using PREPARE + EXECUTE (MySQL)", c:
+"-- Step 1: Get total count\nSET @total_records = (SELECT COUNT(*) FROM employee);\n\n-- Step 2: Calculate 50% (rounded up)\nSET @limit = CEIL(@total_records / 2);\n\n-- Step 3: Prepare and execute\nPREPARE stmt FROM 'SELECT * FROM employee ORDER BY emp_id LIMIT ?';\nEXECUTE stmt USING @limit;\nDEALLOCATE PREPARE stmt;" }
+      ]
+    }
+  ]
+},
+{
+  title: "DDL — Table Structure",
+  qs: [
+    {
+      q: "Create a new table with primary key, foreign key, and composite key",
+      variants: [
+        { l: "Create table with primary key", c:
+"CREATE TABLE employee (\n    emp_id    INT PRIMARY KEY,\n    emp_name  VARCHAR(100),\n    emp_email VARCHAR(100),\n    salary    DECIMAL(10, 2),\n    department VARCHAR(50)\n);" },
+        { l: "Create table with primary + foreign key", c:
+"CREATE TABLE employee (\n    emp_id    INT PRIMARY KEY,\n    emp_name  VARCHAR(100) NOT NULL,\n    emp_email VARCHAR(100),\n    salary    DECIMAL(10, 2),\n    dept_id   INT,\n    FOREIGN KEY (dept_id) REFERENCES department(dept_id)\n);" },
+        { l: "Create table with composite primary key", c:
+"CREATE TABLE employee (\n    emp_id    INT,\n    emp_name  VARCHAR(100) NOT NULL,\n    emp_email VARCHAR(100),\n    PRIMARY KEY (emp_id, emp_name)\n);" }
+      ]
+    },
+    {
+      q: "Create a new table with the same structure as an existing table",
+      note: "WHERE 1=0 ensures no data is copied — only the structure is cloned.",
+      variants: [
+        { l: "Copy structure only (no data)", c:
+"CREATE TABLE new_employee AS\nSELECT * FROM employee WHERE 1=0;\n\n-- Note: Primary key is NOT copied; add it manually:\nALTER TABLE new_employee ADD PRIMARY KEY (emp_id);" },
+        { l: "Copy structure AND data", c:
+"CREATE TABLE new_employee AS\nSELECT * FROM employee;\n\n-- Add primary key manually if needed:\nALTER TABLE new_employee ADD PRIMARY KEY (emp_id);" }
+      ]
+    },
+    {
+      q: "ALTER TABLE — add, drop, modify, rename columns",
+      variants: [
+        { l: "Add a new column", c:
+"ALTER TABLE employee\nADD COLUMN phone_number VARCHAR(15);" },
+        { l: "Drop (delete) a column", c:
+"ALTER TABLE employee\nDROP COLUMN phone_number;" },
+        { l: "Modify (change data type of) a column", c:
+"ALTER TABLE employee\nMODIFY COLUMN phone_number VARCHAR(20);\n\n-- Change salary data type\nALTER TABLE employee\nMODIFY COLUMN salary DECIMAL(10, 2);" },
+        { l: "Rename a table", c:
+"ALTER TABLE employee\nRENAME TO staff;" }
+      ]
+    },
+    {
+      q: "Create an index on an employee table",
+      note: "Indexes speed up data retrieval. Composite index works best when WHERE uses leading columns first.",
+      variants: [
+        { l: "CREATE INDEX", c:
+"CREATE INDEX idx_employee\nON employee (emp_id, emp_name, emp_email);" }
+      ]
+    },
+    {
+      q: "Create a VIEW on the employee table",
+      variants: [
+        { l: "CREATE VIEW", c:
+"CREATE VIEW employee_view AS\nSELECT emp_name, salary\nFROM employee;" }
+      ]
+    },
+    {
+      q: "See the CREATE statement and structure of an existing table",
+      variants: [
+        { l: "Show create statement, columns and keys", c:
+"-- See full CREATE TABLE statement:\nSHOW CREATE TABLE employee;\n\n-- See all columns:\nSHOW COLUMNS IN employee;\n\n-- See indexes/keys:\nSHOW KEYS IN employee;" }
+      ]
+    }
+  ]
+},
+{
+  title: "DML — Insert, Update, Delete",
+  qs: [
+    {
+      q: "INSERT rows into a table",
+      variants: [
+        { l: "Insert a single row", c:
+"INSERT INTO employee (emp_id, emp_name, emp_email, salary, department)\nVALUES (101, 'John Doe', 'john.doe@example.com', 50000, 'HR');" },
+        { l: "Insert multiple rows", c:
+"INSERT INTO employee (emp_id, emp_name, emp_email, salary, department)\nVALUES\n    (102, 'Jane Smith', 'jane.smith@example.com', 60000, 'Finance'),\n    (103, 'Mike Johnson', 'mike.johnson@example.com', 55000, 'IT');" },
+        { l: "Insert into specific columns only", c:
+"INSERT INTO employee (emp_id, emp_name, department)\nVALUES (104, 'Emily Davis', 'Marketing');" },
+        { l: "Insert without specifying column names", c:
+"-- Values must match the exact column order of the table\nINSERT INTO employee\nVALUES (105, 'Robert Brown', 'robert.brown@example.com', 62000, 'Sales');" }
+      ]
+    },
+    {
+      q: "UPDATE — modify existing data in a table",
+      variants: [
+        { l: "Update salary of a specific employee", c:
+"UPDATE employee\nSET salary = 60000\nWHERE emp_id = 101;" }
+      ]
+    },
+    {
+      q: "Difference between DROP, DELETE, and TRUNCATE",
+      note: "DELETE can be rolled back. DROP and TRUNCATE are permanent.",
+      variants: [
+        { l: "DROP — removes the entire table", c:
+"DROP TABLE employee;\n-- Removes the table AND its structure permanently.\n-- Cannot be rolled back." },
+        { l: "DELETE — removes specific rows", c:
+"DELETE FROM employee WHERE emp_id = 101;\n-- Removes only matching rows.\n-- Can be rolled back inside a transaction." },
+        { l: "TRUNCATE — removes all rows, keeps structure", c:
+"TRUNCATE TABLE employee;\n-- Faster than DELETE for clearing all rows.\n-- Cannot be rolled back." }
+      ]
+    }
+  ]
+},
+{
+  title: "TCL — Transactions",
+  qs: [
+    {
+      q: "COMMIT — save a transaction permanently",
+      variants: [
+        { l: "Transaction with COMMIT", c:
+"BEGIN TRANSACTION;\n\nUPDATE employee SET salary = 60000 WHERE emp_id = 101;\n\nCOMMIT;\nEND TRANSACTION;" }
+      ]
+    },
+    {
+      q: "ROLLBACK — undo a transaction",
+      variants: [
+        { l: "Transaction with ROLLBACK", c:
+"BEGIN TRANSACTION;\n\nDELETE FROM employee WHERE emp_id = 101;\n\n-- Undo all changes in this transaction\nROLLBACK;" }
+      ]
+    },
+    {
+      q: "SAVEPOINT — set checkpoints inside a transaction",
+      variants: [
+        { l: "Transaction with SAVEPOINT + partial ROLLBACK", c:
+"BEGIN TRANSACTION;\n\nUPDATE employee SET salary = 60000 WHERE emp_id = 101;\nSAVEPOINT sp1;\n\nUPDATE employee SET salary = 70000 WHERE emp_id = 102;\nSAVEPOINT sp2;\n\n-- Roll back to sp1 only (undoes sp2 change)\nROLLBACK TO sp1;\n\nCOMMIT;" }
+      ]
+    }
+  ]
+},
+{
+  title: "DCL — Access Control",
+  qs: [
+    {
+      q: "GRANT and REVOKE user privileges",
+      variants: [
+        { l: "GRANT access to a user", c:
+"GRANT SELECT, INSERT, UPDATE\nON database_name.table_name\nTO 'username'@'host';" },
+        { l: "REVOKE access from a user", c:
+"REVOKE SELECT, INSERT, UPDATE\nON database_name.table_name\nFROM 'username'@'host';" }
+      ]
+    }
+  ]
+},
+{
+  title: "Composite Index Behaviour",
+  qs: [
+    {
+      q: "Does a composite index get used if only 2 of 3 columns are in WHERE clause?",
+      note: "Leading columns rule: index on (A,B,C) works best when WHERE includes A first. Skipping A makes index ineffective.",
+      variants: [
+        { l: "Example — composite index on (EmpId, EmpFirstName, EmpSecondName)", c:
+"-- Index: (EmpId, EmpFirstName, EmpSecondName)\n\n-- Query 1: Uses index effectively (leading columns included)\nSELECT * FROM Employee\nWHERE EmpId = 2 AND EmpFirstName = 'Radhe';\n\n-- Query 2: Index NOT used effectively (leading column A skipped)\nSELECT * FROM Employee\nWHERE EmpFirstName = 'Radhe' AND EmpSecondName = 'Kumar';\n\n-- Rule: Always include the FIRST column of the composite\n-- index in WHERE to make it effective." }
+      ]
+    }
+  ]
+},
+{
+  title: "Misc Utility Queries",
+  qs: [
+    {
+      q: "Find the first and last employee record from the table",
+      variants: [
+        { l: "First employee (lowest ID)", c:
+"SELECT *\nFROM employee\nORDER BY employee_id ASC\nLIMIT 1;" },
+        { l: "Last employee (highest ID)", c:
+"SELECT *\nFROM employee\nORDER BY employee_id DESC\nLIMIT 1;" }
+      ]
+    },
+    {
+      q: "Create a database",
+      variants: [
+        { l: "CREATE DATABASE", c:
+"CREATE DATABASE my_new_database;" }
+      ]
+    },
+    {
+      q: "Differences between SQL command categories (DDL, DML, DQL, DCL, TCL)",
+      note: "Quick reference for command types used in SQL interviews.",
+      variants: [
+        { l: "Summary table", c:
+"-- DDL (Data Definition Language)\n--   CREATE, ALTER, DROP, TRUNCATE\n--   → Changes database/table STRUCTURE\n\n-- DML (Data Manipulation Language)\n--   INSERT, UPDATE, DELETE\n--   → Changes DATA inside tables\n\n-- DQL (Data Query Language)\n--   SELECT\n--   → Retrieves/reads data\n\n-- DCL (Data Control Language)\n--   GRANT, REVOKE\n--   → Controls USER ACCESS\n\n-- TCL (Transaction Control Language)\n--   COMMIT, ROLLBACK, SAVEPOINT\n--   → Manages TRANSACTIONS" }
+      ]
+    },
+    {
+      q: "Difference between ALTER and UPDATE commands",
+      note: "ALTER = structure change. UPDATE = data change.",
+      variants: [
+        { l: "ALTER (DDL) — modifies table structure", c:
+"-- Adding a column\nALTER TABLE employee ADD COLUMN phone_number VARCHAR(15);\n\n-- Dropping a column\nALTER TABLE employee DROP COLUMN phone_number;\n\n-- Modifying data type\nALTER TABLE employee MODIFY COLUMN salary DECIMAL(10, 2);\n\n-- Renaming table\nALTER TABLE employee RENAME TO staff;" },
+        { l: "UPDATE (DML) — modifies row data", c:
+"-- Update a specific employee's salary\nUPDATE employee\nSET salary = 60000\nWHERE emp_id = 101;" }
+      ]
+    },
+    {
+      q: "Difference between Table and VIEW",
+      note: "A table stores real data physically. A VIEW is a virtual table — a saved SELECT query with no storage.",
+      variants: [
+        { l: "Creating a VIEW", c:
+"-- A VIEW does not store data; it runs a query on demand\nCREATE VIEW employee_view AS\nSELECT emp_name, salary\nFROM employee;\n\n-- Query the view just like a table\nSELECT * FROM employee_view;" }
+      ]
+    },
+    {
+      q: "Common SQL clauses and operators — quick reference",
+      variants: [
+        { l: "Clauses", c:
+"SELECT   -- Retrieves data\nWHERE    -- Filters rows\nORDER BY -- Sorts results (ASC / DESC)\nGROUP BY -- Groups rows for aggregation\nHAVING   -- Filters after GROUP BY\nJOIN     -- Combines tables" },
+        { l: "Operators", c:
+"-- Arithmetic:  +  -  *  /\nSELECT salary + 5000 AS new_salary FROM employee;\n\n-- Comparison:  =  <>  >  <  >=  <=\nSELECT * FROM employee WHERE salary >= 60000;\n\n-- Logical:  AND  OR  NOT\nSELECT * FROM employee WHERE department = 'HR' AND salary > 50000;\n\n-- LIKE (pattern match)\nSELECT * FROM employee WHERE emp_name LIKE 'J%';\n\n-- IN (value list)\nSELECT * FROM employee WHERE department IN ('HR', 'Finance');\n\n-- BETWEEN (range)\nSELECT * FROM employee WHERE salary BETWEEN 50000 AND 70000;" }
+      ]
+    }
+  ]
+}
+];
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ── CUSTOM Q's (localStorage) ─────────────────────────────────────────────────
+var CUSTOM_KEY = 'sql_cheat_custom_qs';
+function loadCustom() { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]'); } catch(e){ return []; } }
+function saveCustom(a) { try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(a)); } catch(e){} }
+
+function getSections() {
+  var c = loadCustom();
+  if (c.length === 0) return SECTIONS;
+  return [{ title: '\u2B50 My Custom Questions', qs: c, isCustom: true }].concat(SECTIONS);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(filter) {
+  var root = document.getElementById('root');
+  var noR  = document.getElementById('noResults');
+  filter = (filter||'').toLowerCase().trim();
+  var html = '', total = 0;
+  var all = getSections();
+
+  for (var si = 0; si < all.length; si++) {
+    var sec = all[si], isC = !!sec.isCustom, items = [];
+    for (var qi = 0; qi < sec.qs.length; qi++) {
+      var q = sec.qs[qi];
+      if (!filter) { items.push({q:q,idx:qi}); continue; }
+      var hit = q.q.toLowerCase().indexOf(filter)>=0 || ((q.note||'').toLowerCase().indexOf(filter)>=0);
+      if (!hit) for (var vi=0;vi<q.variants.length;vi++) {
+        if (q.variants[vi].l.toLowerCase().indexOf(filter)>=0 || q.variants[vi].c.toLowerCase().indexOf(filter)>=0){ hit=true; break; }
+      }
+      if (hit) items.push({q:q,idx:qi});
+    }
+    if (!items.length) continue;
+    total += items.length;
+    html += '<div class="section-wrap"><div class="section-title">'+esc(sec.title)+'</div>';
+    for (var ii=0;ii<items.length;ii++) {
+      var item=items[ii].q;
+      var noteHtml = item.note ? '<div class="note">&#128204; '+esc(item.note)+'</div>' : '';
+      var vHtml = '';
+      for (var vv=0;vv<item.variants.length;vv++) {
+        var v=item.variants[vv];
+        vHtml += '<div class="variant"><div class="vlabel">'+esc(v.l)+'</div><pre>'+esc(v.c)+'</pre></div>';
+      }
+      html += '<div class="q-card'+(isC?' custom-card':'')+'">'+
+              '<div class="q-trigger"><div class="q-text">'+esc(item.q)+'</div><div class="chevron">&#9660;</div></div>'+
+              '<div class="q-body">'+noteHtml+vHtml+'</div></div>';
+    }
+    html += '</div>';
+  }
+  root.innerHTML = html;
+  noR.style.display = total===0 ? 'block' : 'none';
+}
+
+// ── ACCORDION ─────────────────────────────────────────────────────────────────
+document.getElementById('root').addEventListener('click', function(e) {
+  var el = e.target;
+  while (el && el !== this) {
+    if (el.classList.contains('q-trigger')) {
+      var card = el.closest ? el.closest('.q-card') : el.parentElement;
+      if (card) card.classList.toggle('open');
+      return;
+    }
+    el = el.parentElement;
+  }
+});
+
+document.getElementById('searchBox').addEventListener('input', function(){ render(this.value); });
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+var variantCount = 1;
+
+function openModal() {
+  variantCount = 1;
+  document.getElementById('qTitle').value = '';
+  document.getElementById('qNote').value = '';
+  document.getElementById('variantsWrap').innerHTML = makeVariantBlock(0);
+  document.getElementById('addModal').style.display = 'flex';
+  document.getElementById('qTitle').focus();
+}
+function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+function makeVariantBlock(idx) {
+  return '<div class="variant-block" id="vb'+idx+'">'+
+    '<div class="vb-header"><span class="vb-label">Answer / Variant '+(idx+1)+'</span>'+
+    (idx>0 ? '<button type="button" class="rm-variant" onclick="removeVariant('+idx+')">&#10005; Remove</button>' : '')+
+    '</div>'+
+    '<input type="text" class="modal-input" id="vLabel'+idx+'" placeholder="Label (e.g. Using GROUP BY)" />'+
+    '<textarea class="modal-code" id="vCode'+idx+'" rows="6" placeholder="Paste your SQL here..."></textarea>'+
+    '</div>';
+}
+function addVariant() {
+  document.getElementById('variantsWrap').insertAdjacentHTML('beforeend', makeVariantBlock(variantCount));
+  variantCount++;
+}
+function removeVariant(idx) { var e=document.getElementById('vb'+idx); if(e) e.remove(); }
+
+function saveQuestion() {
+  var title = document.getElementById('qTitle').value.trim();
+  var note  = document.getElementById('qNote').value.trim();
+  if (!title) { alert('Please enter a question title.'); return; }
+  var variants = [];
+  for (var i=0;i<variantCount;i++) {
+    var lEl=document.getElementById('vLabel'+i), cEl=document.getElementById('vCode'+i);
+    if (!lEl||!cEl) continue;
+    var l=lEl.value.trim(), c=cEl.value.trim();
+    if (!l&&!c) continue;
+    variants.push({l: l||'Solution', c: c});
+  }
+  if (!variants.length) { alert('Please add at least one answer/variant.'); return; }
+  var newQ = {q:title, variants:variants};
+  if (note) newQ.note = note;
+  var c = loadCustom(); c.push(newQ); saveCustom(c);
+  closeModal();
+  render(document.getElementById('searchBox').value);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('addModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+render('');
+</script>
+</body>
+</html>

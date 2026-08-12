@@ -1,0 +1,2634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kafka & Event-Driven Cheat Sheet</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0d0d0d; color: #e2e8f0; min-height: 100vh; padding-bottom: 90px;
+}
+header {
+  background: linear-gradient(135deg, #1a0d00 0%, #0d0d0d 55%, #001a1a 100%);
+  padding: 24px 16px 20px; text-align: center; border-bottom: 2px solid #e8502a;
+}
+header h1 { font-size: 1.5rem; color: #f97316; font-weight: 800; letter-spacing: -0.5px; }
+header .sub { font-size: 0.78rem; color: #9ca3af; margin-top: 6px; line-height: 1.5; }
+header .badges {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  justify-content: center; margin-top: 10px;
+}
+header .badge {
+  background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px;
+  padding: 3px 10px; font-size: 0.63rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px; color: #f97316;
+}
+.sticky-bar {
+  position: sticky; top: 0; z-index: 200;
+  background: #141414; border-bottom: 1px solid #1f1f1f; padding: 10px 12px;
+}
+.sticky-bar input {
+  width: 100%; padding: 9px 14px; border-radius: 8px;
+  border: 1px solid #2a2a2a; background: #0d0d0d;
+  color: #e2e8f0; font-size: 0.9rem; outline: none;
+}
+.sticky-bar input:focus { border-color: #e8502a; }
+.sticky-bar input::placeholder { color: #4b5563; }
+.section-wrap { margin: 16px 10px 6px; }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 8px; border-bottom: 1px solid #1f1f1f; margin-bottom: 8px;
+}
+.section-title {
+  font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: 1.8px; color: #f97316; font-weight: 800;
+}
+.section-add-btn {
+  background: transparent; border: 1px dashed #2a2a2a; color: #6b7280;
+  border-radius: 6px; padding: 3px 10px; font-size: 0.63rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.section-add-btn:hover { border-color: #f97316; color: #f97316; }
+.q-card {
+  background: #141414; border: 1px solid #1f1f1f;
+  border-radius: 10px; margin-bottom: 7px; overflow: hidden;
+}
+.q-card.open { border-color: #e8502a; }
+.q-trigger {
+  display: flex; align-items: center; gap: 10px; padding: 13px 14px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.q-trigger:active { background: #1a1a1a; }
+.q-badge {
+  font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.8px; padding: 2px 7px; border-radius: 4px;
+  flex-shrink: 0; line-height: 1.6;
+}
+.badge-concept  { background: #1c1500; color: #fbbf24; }
+.badge-arch     { background: #0d1a2e; color: #60a5fa; }
+.badge-impl     { background: #0d1f0d; color: #4ade80; }
+.badge-scenario { background: #1f0d0d; color: #f87171; }
+.badge-config   { background: #1a1a0d; color: #facc15; }
+.badge-perf     { background: #0d1f1f; color: #2dd4bf; }
+.badge-confluent { background: #1a0d1a; color: #c084fc; }
+.badge-testing  { background: #0d1520; color: #93c5fd; }
+.badge-custom   { background: #1f1520; color: #f9a8d4; }
+.q-text { flex: 1; font-size: 0.87rem; font-weight: 600; color: #e2e8f0; line-height: 1.35; }
+.q-card.open .q-text { color: #f97316; }
+.chevron {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: #1f1f1f; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #6b7280; transition: transform 0.22s, background 0.2s;
+}
+.q-card.open .chevron { transform: rotate(180deg); background: #e8502a; color: #fff; }
+.q-body { display: none; border-top: 1px solid #1f1f1f; }
+.q-card.open .q-body { display: block; }
+.note {
+  margin: 10px 14px 0; background: #1a1000;
+  border-left: 3px solid #f97316; border-radius: 0 6px 6px 0;
+  padding: 8px 11px; font-size: 0.78rem; color: #d4843a; line-height: 1.55;
+}
+.variant { padding: 10px 14px 12px; border-bottom: 1px solid #0d0d0d; }
+.variant:last-child { border-bottom: none; }
+.vlabel {
+  font-size: 0.63rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: #f97316; margin-bottom: 7px;
+}
+pre {
+  background: #0a0a0a; border: 1px solid #252525;
+  border-radius: 7px; padding: 13px; overflow-x: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 0.74rem; line-height: 1.8;
+  color: #cdd6f4; white-space: pre;
+}
+.no-results { text-align: center; padding: 50px 20px; color: #2a2a2a; font-size: 0.9rem; }
+#fabBtn {
+  position: fixed; bottom: 24px; right: 20px; width: 54px; height: 54px;
+  border-radius: 50%; background: #e8502a; color: #fff; font-size: 2rem;
+  font-weight: 300; border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(232,80,42,0.45); z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1; transition: transform 0.15s;
+}
+#fabBtn:active { transform: scale(0.92); }
+#addModal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+@media (min-width: 600px) { #addModal { align-items: center; padding: 20px; } }
+#modalBox {
+  background: #141414; border-radius: 16px 16px 0 0; width: 100%;
+  max-width: 640px; max-height: 94vh; display: flex; flex-direction: column;
+  overflow: hidden; border: 1px solid #e8502a;
+}
+@media (min-width: 600px) { #modalBox { border-radius: 16px; } }
+#modalHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid #1f1f1f; flex-shrink: 0;
+}
+#modalTitle { font-size: 1rem; font-weight: 700; color: #f97316; }
+#modalClose {
+  background: #1f1f1f; border: none; color: #6b7280; width: 28px; height: 28px;
+  border-radius: 50%; cursor: pointer; font-size: 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+}
+#modalBody { padding: 16px 18px; overflow-y: auto; flex: 1; }
+.modal-label {
+  display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: #f97316; margin-bottom: 6px; margin-top: 14px;
+}
+.modal-label:first-child { margin-top: 0; }
+.modal-input {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #2a2a2a;
+  background: #0d0d0d; color: #e2e8f0; font-size: 0.88rem; outline: none; margin-bottom: 2px;
+}
+.modal-input:focus { border-color: #e8502a; }
+.modal-select {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #2a2a2a;
+  background: #0d0d0d; color: #e2e8f0; font-size: 0.88rem; outline: none;
+  margin-bottom: 2px; cursor: pointer;
+}
+.modal-select:focus { border-color: #e8502a; }
+.modal-code {
+  width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #2a2a2a;
+  background: #0a0a0a; color: #cdd6f4; font-family: 'Courier New', monospace;
+  font-size: 0.78rem; line-height: 1.6; outline: none; resize: vertical; margin-bottom: 2px;
+}
+.modal-code:focus { border-color: #e8502a; }
+.variant-block {
+  background: #0d0d0d; border: 1px solid #1f1f1f;
+  border-radius: 8px; padding: 12px; margin-bottom: 10px;
+}
+.vb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.vb-label { font-size: 0.75rem; font-weight: 700; color: #6b7280; }
+.rm-variant {
+  background: #141414; border: 1px solid #2a2a2a; color: #f87171;
+  border-radius: 5px; padding: 3px 8px; font-size: 0.7rem; cursor: pointer;
+}
+#addVariantBtn {
+  width: 100%; padding: 9px; margin-top: 4px; background: transparent;
+  border: 1px dashed #2a2a2a; color: #6b7280; border-radius: 7px;
+  font-size: 0.82rem; cursor: pointer; transition: border-color 0.2s, color 0.2s;
+}
+#addVariantBtn:hover { border-color: #e8502a; color: #f97316; }
+#modalFooter {
+  display: flex; gap: 10px; padding: 14px 18px;
+  border-top: 1px solid #1f1f1f; flex-shrink: 0;
+}
+#cancelBtn {
+  flex: 1; padding: 11px; border-radius: 8px; border: 1px solid #2a2a2a;
+  background: transparent; color: #6b7280; font-size: 0.9rem; cursor: pointer;
+}
+#saveBtn {
+  flex: 2; padding: 11px; border-radius: 8px; border: none;
+  background: #e8502a; color: #fff; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+}
+#saveBtn:active { background: #c94420; }
+.custom-card { border-color: #2a1500 !important; }
+.custom-card.open { border-color: #e8502a !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>&#9889; Kafka & Event-Driven Systems</h1>
+  <p class="sub">Apache Kafka · Confluent Cloud · Spring Boot · Enterprise Grade<br>Architecture · Internals · Patterns · Scenarios · Interview Ready</p>
+  <div class="badges">
+    <span class="badge">Kafka Internals</span>
+    <span class="badge">Confluent Cloud</span>
+    <span class="badge">Spring Kafka</span>
+    <span class="badge">Event Patterns</span>
+    <span class="badge">Guarantees</span>
+    <span class="badge">Schema Registry</span>
+    <span class="badge">Streams</span>
+    <span class="badge">Scenarios</span>
+  </div>
+</header>
+<div class="sticky-bar">
+  <input type="text" id="searchBox" placeholder="&#128269;  Search (e.g. partition, consumer group, exactly-once, avro, saga...)" />
+</div>
+<div id="root"></div>
+<div id="noResults" class="no-results" style="display:none">No matches found.</div>
+<button id="fabBtn" onclick="openModal(null)" title="Add new question">+</button>
+<div id="addModal" style="display:none">
+  <div id="modalBox">
+    <div id="modalHeader">
+      <span id="modalTitle">Add New Question</span>
+      <button id="modalClose" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div id="modalBody">
+      <label class="modal-label">Section *</label>
+      <select class="modal-select" id="qSection"></select>
+      <div id="newSectionWrap" style="display:none">
+        <label class="modal-label">New Section Name *</label>
+        <input type="text" class="modal-input" id="newSectionName" placeholder="e.g. Kafka Connect Deep Dive" />
+      </div>
+      <label class="modal-label">Badge / Type</label>
+      <select class="modal-select" id="qBadge">
+        <option value="badge-concept">Concept</option>
+        <option value="badge-arch">Architecture</option>
+        <option value="badge-impl">Implementation</option>
+        <option value="badge-scenario">Scenario</option>
+        <option value="badge-config">Configuration</option>
+        <option value="badge-perf">Performance</option>
+        <option value="badge-confluent">Confluent</option>
+        <option value="badge-testing">Testing</option>
+        <option value="badge-custom">Custom</option>
+      </select>
+      <label class="modal-label">Question Title *</label>
+      <input type="text" class="modal-input" id="qTitle" placeholder="e.g. How does log compaction work?" />
+      <label class="modal-label">Note / Tip (optional)</label>
+      <input type="text" class="modal-input" id="qNote" placeholder="e.g. Commonly asked at Uber, LinkedIn interviews" />
+      <label class="modal-label" style="margin-top:16px">Answers / Variants</label>
+      <div id="variantsWrap"></div>
+      <button id="addVariantBtn" type="button" onclick="addVariant()">+ Add Another Variant</button>
+    </div>
+    <div id="modalFooter">
+      <button id="cancelBtn" onclick="closeModal()">Cancel</button>
+      <button id="saveBtn" onclick="saveQuestion()">Save Question</button>
+    </div>
+  </div>
+</div>
+<script>
+var SECTIONS = [
+// ═══════════════════════════════════════════════════════════════════
+//  1. KAFKA CORE ARCHITECTURE & INTERNALS
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Kafka Core Architecture & Internals",
+  qs: [
+    {
+      q: "What is Apache Kafka and how does it differ from traditional message queues?",
+      badge: "badge-concept",
+      note: "Kafka is a distributed event streaming platform — not just a queue. Messages are stored and can be replayed, unlike RabbitMQ.",
+      variants: [{l:"Kafka vs traditional MQ — key differences", c:
+`/*
+  TRADITIONAL MQ (RabbitMQ, ActiveMQ, IBM MQ):
+  ────────────────────────────────────────────────
+  • Push-based: broker pushes messages to consumers
+  • Message deleted after acknowledgement (transient)
+  • Queue model: each message delivered to ONE consumer
+  • Ordering: not guaranteed across queue
+  • Scaling: vertical; adding consumers reduces throughput
+  • Replay: NOT possible once consumed
+  • Retention: seconds to hours
+  • Throughput: moderate (thousands/sec)
+
+  APACHE KAFKA:
+  ────────────────────────────────────────────────
+  • Pull-based: consumers pull at their own pace
+  • Message retained on disk for configured duration (default 7 days)
+  • Topic+Partition model: multiple consumer groups read independently
+  • Ordering: guaranteed WITHIN a partition
+  • Scaling: horizontal; more partitions = more parallelism
+  • Replay: YES — reset consumer offset to any point
+  • Retention: hours, days, months, or FOREVER (log compaction)
+  • Throughput: millions of messages/second
+
+  USE KAFKA WHEN:
+  ✓ Event sourcing / audit log
+  ✓ High throughput streaming (logs, metrics, IoT)
+  ✓ Multiple consumers need same events (fanout)
+  ✓ Replay needed (new microservice catching up)
+  ✓ Decoupling microservices via events
+
+  USE RABBITMQ WHEN:
+  ✓ Complex routing (topic/fanout/direct exchanges)
+  ✓ Task queues (work distribution)
+  ✓ Low latency RPC-style messaging
+  ✓ Small-scale apps with simple messaging needs
+*/`}]
+    },
+    {
+      q: "Explain Kafka's core components: Broker, Topic, Partition, Offset, Replica",
+      badge: "badge-arch",
+      note: "These are the fundamental building blocks. Every Kafka interview starts here.",
+      variants: [{l:"Complete component breakdown with internals", c:
+`/*
+  ┌─────────────────────────────────────────────────────────────┐
+  │                    KAFKA CLUSTER                            │
+  │                                                             │
+  │  ┌──────────┐   ┌──────────┐   ┌──────────┐               │
+  │  │ BROKER 1 │   │ BROKER 2 │   │ BROKER 3 │               │
+  │  │(leader   │   │(follower)│   │(follower)│               │
+  │  │ P0,P2)   │   │ P1,P3)   │   │ P0,P1)   │               │
+  │  └──────────┘   └──────────┘   └──────────┘               │
+  │       ▲                                                     │
+  │  ┌────┴──────────────────────────────────┐                 │
+  │  │              ZooKeeper / KRaft        │ ← metadata      │
+  │  └───────────────────────────────────────┘                 │
+  └─────────────────────────────────────────────────────────────┘
+
+  BROKER:
+  • A Kafka server process. Stores messages on disk.
+  • Cluster = multiple brokers (typically 3 in production).
+  • Each broker handles reads/writes for its assigned partitions.
+  • Identified by unique broker.id.
+
+  TOPIC:
+  • Logical channel for a category of events (e.g. "order-events").
+  • Split into N partitions for parallelism.
+  • Topic config: partitions=6, replication-factor=3
+
+  PARTITION:
+  • Ordered, immutable, append-only log of messages.
+  • Each partition lives on ONE broker (the leader).
+  • Replicas of partition live on other brokers (followers).
+  • Messages within a partition have guaranteed ordering.
+  • Partition count = max parallelism for consumers.
+
+  OFFSET:
+  • Sequential integer identifying each message in a partition.
+  • Starts at 0, increments by 1 per message.
+  • Consumer tracks its position (committed offset).
+  • Allows replay: reset offset → reprocess old messages.
+
+  REPLICA:
+  • Copy of a partition stored on a different broker.
+  • Leader replica: handles all reads/writes.
+  • Follower replica: replicates from leader (in-sync replica = ISR).
+  • ISR (In-Sync Replica): follower that is caught up with leader.
+  • If leader fails → one ISR promoted as new leader.
+
+  REPLICATION FACTOR = 3 means:
+  • 1 leader + 2 follower replicas
+  • Tolerates loss of 2 brokers (still has 1 replica)
+  • Minimum ISR = 2 (recommended): producer waits for 2 acks
+*/`}]
+    },
+    {
+      q: "How does Kafka store messages on disk? Explain the log segment architecture.",
+      badge: "badge-arch",
+      note: "Kafka's performance secret: sequential disk I/O + OS page cache + zero-copy transfer.",
+      variants: [{l:"Log segment internals", c:
+`/*
+  KAFKA LOG STORAGE STRUCTURE:
+  /kafka-logs/
+  └── orders-events-0/           ← topic "order-events", partition 0
+      ├── 00000000000000000000.log    ← segment file (messages binary)
+      ├── 00000000000000000000.index  ← offset index (offset → file position)
+      ├── 00000000000000000000.timeindex ← timestamp index
+      ├── 00000000000001234567.log    ← next segment (started at offset 1234567)
+      ├── 00000000000001234567.index
+      └── leader-epoch-checkpoint
+
+  SEGMENT:
+  • Each segment is a file of configurable max size (default 1GB)
+    or max time (default 7 days): log.segment.bytes, log.segment.ms
+  • Active segment: where new messages are appended
+  • Closed segments: immutable, eligible for deletion/compaction
+
+  WHY KAFKA IS FAST:
+  1. SEQUENTIAL WRITES:  All writes go to end of active segment
+     (HDD sequential write = 600MB/s vs random = 1MB/s)
+  2. OS PAGE CACHE:  Kafka reads from OS file cache (RAM), not disk
+  3. ZERO-COPY:  sendfile() syscall transfers data from page cache
+     directly to network socket — bypasses userspace entirely
+  4. BATCH COMPRESSION:  Messages batched and compressed (snappy/lz4/zstd)
+     before write → less I/O, less network bytes
+
+  MESSAGE FORMAT ON DISK:
+  Each record contains:
+  • offset (8 bytes)
+  • timestamp (8 bytes)
+  • key length (4 bytes) + key bytes
+  • value length (4 bytes) + value bytes
+  • headers (key-value metadata array)
+
+  LOG RETENTION POLICIES:
+  // Delete by time:
+  log.retention.hours=168          // delete segments older than 7 days
+  // Delete by size:
+  log.retention.bytes=107374182400 // delete when partition > 100GB
+  // Compact (keep latest value per key):
+  log.cleanup.policy=compact
+  // Both delete AND compact:
+  log.cleanup.policy=compact,delete
+*/`}]
+    },
+    {
+      q: "What is the difference between ZooKeeper mode and KRaft mode?",
+      badge: "badge-arch",
+      note: "KRaft (Kafka Raft) replaces ZooKeeper from Kafka 3.3+. All new clusters should use KRaft.",
+      variants: [{l:"ZooKeeper vs KRaft comparison", c:
+`/*
+  ZOOKEEPER MODE (legacy, Kafka < 3.3):
+  ─────────────────────────────────────────────
+  • ZooKeeper stores cluster metadata (topic configs, partition assignments, ISR)
+  • Kafka brokers register themselves in ZooKeeper
+  • Leader election done via ZooKeeper
+  • Problems:
+    - Separate system to manage, monitor, secure
+    - ZooKeeper becomes bottleneck at large scale (millions of partitions)
+    - Complex ops: ZooKeeper upgrades, quorum issues
+    - Metadata propagation lag (ZK → Broker sync)
+
+  KRAFT MODE (Kafka 3.3+, production ready):
+  ─────────────────────────────────────────────
+  • Kafka manages its own metadata using Raft consensus protocol
+  • One or more brokers act as "controllers" (Raft quorum)
+  • Metadata stored in internal __cluster_metadata topic
+  • Benefits:
+    - No ZooKeeper dependency (simpler ops)
+    - Faster controller failover (milliseconds vs seconds)
+    - Supports millions of partitions (no ZK bottleneck)
+    - Simplified security (one system to secure)
+    - Better startup time
+
+  KRAFT CONFIG (server.properties):
+  process.roles=broker,controller   # combined mode (dev)
+  process.roles=broker              # broker-only node
+  process.roles=controller          # controller-only node
+  node.id=1
+  controller.quorum.voters=1@localhost:9093,2@localhost:9094,3@localhost:9095
+
+  # For production:
+  # 3 dedicated controller nodes + N broker nodes
+  # Controllers: process.roles=controller
+  # Brokers: process.roles=broker
+
+  CONFLUENT CLOUD: uses KRaft internally, fully managed.
+  You never interact with ZooKeeper or KRaft directly.
+*/`}]
+    },
+    {
+      q: "How does Kafka's producer exactly-once semantics (EOS) work internally?",
+      badge: "badge-arch",
+      note: "EOS = Idempotent producer + Transactions. Prevents duplicate messages even on retries.",
+      variants: [{l:"Idempotent producer + transactions internals", c:
+`/*
+  DELIVERY GUARANTEES:
+  ─────────────────────────────────────────────────────────
+  AT MOST ONCE  : acks=0, no retries → fast, possible data loss
+  AT LEAST ONCE : acks=all, retries=MAX → no loss, possible duplicates
+  EXACTLY ONCE  : acks=all + idempotent + transactions → no loss, no duplicates
+
+  IDEMPOTENT PRODUCER (prevents duplicates per partition):
+  ─────────────────────────────────────────────────────────
+  • Each producer assigned a PID (Producer ID) by broker
+  • Each message carries a sequence number (per partition)
+  • Broker deduplicates: if seq already seen → ignore, return success
+  • enable.idempotence=true  (auto-sets acks=all, retries=MAX_INT)
+  • Deduplication window: last 5 in-flight batches per partition
+
+  TRANSACTIONS (atomic multi-partition writes):
+  ─────────────────────────────────────────────────────────
+  • transactional.id=my-service-instance-1 (unique per producer)
+  • Allows atomic write to multiple topics/partitions
+  • Either ALL writes commit or NONE (like DB transaction)
+  • Uses __transaction_state topic (internal) for coordinator
+
+  FLOW:
+  producer.initTransactions();
+  producer.beginTransaction();
+  try {
+    producer.send(new ProducerRecord<>("orders", key, value));
+    producer.send(new ProducerRecord<>("inventory", key, value));
+    producer.sendOffsetsToTransaction(offsets, consumerGroupMetadata);
+    producer.commitTransaction();  // atomic commit
+  } catch (Exception e) {
+    producer.abortTransaction();   // atomic rollback
+  }
+
+  CONSUMER SIDE: set isolation.level=read_committed
+  → consumer only reads committed transaction messages
+  → skips aborted transaction messages
+
+  EXACTLY-ONCE IN KAFKA STREAMS:
+  processing.guarantee=exactly_once_v2  // uses EOS internally
+*/`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  2. PRODUCERS — DEEP DIVE
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Kafka Producers — Deep Dive",
+  qs: [
+    {
+      q: "Explain the Producer send path — from send() call to broker acknowledgement",
+      badge: "badge-arch",
+      note: "Understanding the internal send pipeline is critical for tuning producer throughput and latency.",
+      variants: [{l:"Full producer internals pipeline", c:
+`/*
+  PRODUCER SEND PIPELINE:
+  ─────────────────────────────────────────────────────────────
+  producer.send(record)
+       │
+       ▼
+  1. SERIALIZATION
+     key/value → bytes using configured Serializer
+     StringSerializer, JsonSerializer, AvroSerializer, etc.
+       │
+       ▼
+  2. PARTITIONER  (determines which partition to write to)
+     • If key != null  → hash(key) % numPartitions (sticky per batch)
+     • If key == null  → round-robin / sticky partitioner
+     • Custom: implement Partitioner interface
+       │
+       ▼
+  3. RECORD ACCUMULATOR (in-memory buffer per partition)
+     • Messages batched into ProducerBatch
+     • batch.size=16384 (16KB) — send when batch full
+     • linger.ms=5       — or wait up to 5ms for more records
+     • buffer.memory=33554432 (32MB) — total buffer
+     • If buffer full → block for max.block.ms, then exception
+       │
+       ▼
+  4. SENDER THREAD (background I/O thread)
+     • Reads batches from accumulator
+     • Applies compression (snappy/lz4/zstd)
+     • Sends to leader broker via network
+       │
+       ▼
+  5. BROKER ACKNOWLEDGEMENT
+     acks=0: don't wait (fire and forget)
+     acks=1: wait for leader to write to local log
+     acks=all: wait for ALL ISR replicas to write
+       │
+       ▼
+  6. CALLBACK / FUTURE
+     • Success: RecordMetadata (topic, partition, offset, timestamp)
+     • Failure: retriable? → retry with backoff
+                non-retriable? → throw to callback
+
+  KEY PRODUCER CONFIGS:
+  acks=all                      // strongest guarantee
+  enable.idempotence=true       // dedup on retry
+  retries=Integer.MAX_VALUE     // retry indefinitely
+  max.in.flight.requests.per.connection=5   // parallelism
+  batch.size=65536              // 64KB batches (tune for throughput)
+  linger.ms=10                  // wait 10ms to fill batch
+  compression.type=lz4          // compress batches
+  buffer.memory=67108864        // 64MB buffer
+*/`}]
+    },
+    {
+      q: "How do you implement a Kafka producer in Spring Boot with all production configs?",
+      badge: "badge-impl",
+      variants: [
+        {l:"pom.xml + application.yml", c:
+`<!-- pom.xml -->
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
+<!-- For Avro with Schema Registry -->
+<dependency>
+    <groupId>io.confluent</groupId>
+    <artifactId>kafka-avro-serializer</artifactId>
+    <version>7.5.0</version>
+</dependency>
+
+# application.yml
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 2147483647
+      enable-idempotence: true
+      batch-size: 65536          # 64KB
+      linger-ms: 10
+      compression-type: lz4
+      buffer-memory: 67108864    # 64MB
+      properties:
+        max.in.flight.requests.per.connection: 5
+        delivery.timeout.ms: 120000
+        request.timeout.ms: 30000
+        spring.json.add.type.headers: false`},
+        {l:"KafkaTemplate + ProducerConfig bean", c:
+`@Configuration
+public class KafkaProducerConfig {
+
+    @Value("\${spring.kafka.bootstrap-servers}") private String bootstrapServers;
+
+    @Bean
+    public ProducerFactory<String, Object> producerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        config.put(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE);
+        config.put(ProducerConfig.BATCH_SIZE_CONFIG, 65536);
+        config.put(ProducerConfig.LINGER_MS_CONFIG, 10);
+        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "lz4");
+        config.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 67108864L);
+        config.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    @Bean
+    public KafkaTemplate<String, Object> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
+    }
+}`},
+        {l:"Event publisher service with callbacks and MDC tracing", c:
+`@Service
+@Slf4j
+public class EventPublisher {
+
+    @Autowired private KafkaTemplate<String, Object> kafkaTemplate;
+
+    // Fire-and-forget with async callback
+    public void publish(String topic, String key, Object event) {
+        ProducerRecord<String, Object> record = new ProducerRecord<>(topic, key, event);
+
+        // Propagate traceId for distributed tracing
+        String traceId = MDC.get("traceId");
+        if (traceId != null) {
+            record.headers().add("traceId", traceId.getBytes(StandardCharsets.UTF_8));
+        }
+        record.headers().add("eventType", event.getClass().getSimpleName()
+            .getBytes(StandardCharsets.UTF_8));
+        record.headers().add("source", "order-service".getBytes(StandardCharsets.UTF_8));
+
+        kafkaTemplate.send(record)
+            .whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("KAFKA SEND FAILED: topic={} key={} error={}",
+                        topic, key, ex.getMessage(), ex);
+                    // Optionally: save to outbox table for retry
+                } else {
+                    log.info("KAFKA SENT: topic={} partition={} offset={} key={}",
+                        result.getRecordMetadata().topic(),
+                        result.getRecordMetadata().partition(),
+                        result.getRecordMetadata().offset(), key);
+                }
+            });
+    }
+
+    // Synchronous send (blocks until ack — use sparingly)
+    public RecordMetadata publishSync(String topic, String key, Object event) {
+        try {
+            return kafkaTemplate.send(topic, key, event).get(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            throw new KafkaPublishException("Sync send failed: " + e.getMessage(), e);
+        }
+    }
+
+    // Transactional publish
+    @Transactional("kafkaTransactionManager")
+    public void publishTransactional(List<KafkaMessage> messages) {
+        messages.forEach(m -> kafkaTemplate.send(m.getTopic(), m.getKey(), m.getPayload()));
+    }
+}`}
+      ]
+    },
+    {
+      q: "What is the Transactional Outbox Pattern and why is it critical?",
+      badge: "badge-scenario",
+      note: "Dual-write problem: saving to DB AND publishing to Kafka in the same operation — one can fail silently.",
+      variants: [{l:"Outbox pattern full implementation", c:
+`/*
+  PROBLEM (dual write):
+  orderRepository.save(order);        // DB save succeeds ✓
+  kafkaTemplate.send("orders", event) // Kafka fails ✗ → event lost forever!
+
+  OR:
+  kafkaTemplate.send("orders", event) // Kafka succeeds ✓
+  orderRepository.save(order);        // DB fails ✗ → phantom event!
+
+  SOLUTION: Transactional Outbox Pattern
+  1. Save order + outbox record in SAME DB transaction (atomic)
+  2. Separate Outbox Publisher reads pending outbox records
+  3. Publishes to Kafka, marks record as published
+*/
+
+// 1. Outbox entity
+@Entity
+@Table(name = "outbox_events")
+public class OutboxEvent {
+    @Id @GeneratedValue private Long id;
+    private String aggregateType;  // "Order"
+    private String aggregateId;    // orderId
+    private String eventType;      // "OrderCreated"
+    @Column(columnDefinition = "TEXT")
+    private String payload;        // JSON
+    private String topic;
+    private String partitionKey;
+    @Enumerated(EnumType.STRING)
+    private OutboxStatus status;   // PENDING, PUBLISHED, FAILED
+    private int retryCount;
+    private LocalDateTime createdAt;
+    private LocalDateTime publishedAt;
+}
+
+// 2. Service — saves order + outbox in same transaction
+@Service
+@Transactional
+public class OrderService {
+
+    @Autowired private OrderRepository orderRepo;
+    @Autowired private OutboxEventRepository outboxRepo;
+    @Autowired private ObjectMapper mapper;
+
+    public Order createOrder(OrderRequest req) {
+        Order order = orderRepo.save(new Order(req)); // DB save
+
+        // Write to outbox in SAME transaction (atomic!)
+        OutboxEvent outbox = new OutboxEvent();
+        outbox.setAggregateType("Order");
+        outbox.setAggregateId(order.getId().toString());
+        outbox.setEventType("OrderCreated");
+        outbox.setPayload(mapper.writeValueAsString(new OrderCreatedEvent(order)));
+        outbox.setTopic("order-events");
+        outbox.setPartitionKey(order.getId().toString());
+        outbox.setStatus(OutboxStatus.PENDING);
+        outboxRepo.save(outbox);
+
+        return order;
+    }
+}
+
+// 3. Outbox publisher (scheduled poller)
+@Component
+@Slf4j
+public class OutboxPublisher {
+
+    @Autowired private OutboxEventRepository outboxRepo;
+    @Autowired private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Scheduled(fixedDelay = 1000) // poll every 1 second
+    @Transactional
+    public void publishPending() {
+        List<OutboxEvent> pending = outboxRepo
+            .findTop100ByStatusOrderByCreatedAtAsc(OutboxStatus.PENDING);
+
+        pending.forEach(event -> {
+            try {
+                kafkaTemplate.send(event.getTopic(),
+                    event.getPartitionKey(), event.getPayload()).get(5, TimeUnit.SECONDS);
+                event.setStatus(OutboxStatus.PUBLISHED);
+                event.setPublishedAt(LocalDateTime.now());
+            } catch (Exception e) {
+                event.setRetryCount(event.getRetryCount() + 1);
+                if (event.getRetryCount() >= 5) {
+                    event.setStatus(OutboxStatus.FAILED); // alert/DLQ
+                    log.error("Outbox event failed after 5 retries: {}", event.getId());
+                }
+            }
+            outboxRepo.save(event);
+        });
+    }
+}`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  3. CONSUMERS — DEEP DIVE
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Kafka Consumers — Deep Dive",
+  qs: [
+    {
+      q: "Explain Consumer Groups, Partition Assignment and Rebalancing",
+      badge: "badge-arch",
+      note: "Consumer groups are how Kafka achieves horizontal scaling. Each partition consumed by exactly ONE consumer in a group.",
+      variants: [{l:"Consumer group mechanics + rebalancing", c:
+`/*
+  CONSUMER GROUP:
+  • Logical group of consumers that share consumption of a topic
+  • Each partition assigned to EXACTLY ONE consumer in the group
+  • Multiple groups can independently consume same topic
+
+  EXAMPLE: topic "order-events" with 6 partitions, 3 consumer instances
+  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+  │ Consumer-1  │   │ Consumer-2  │   │ Consumer-3  │
+  │ P0, P1      │   │ P2, P3      │   │ P4, P5      │
+  └─────────────┘   └─────────────┘   └─────────────┘
+
+  If we scale to 4 consumers:
+  C1→P0,P1  C2→P2,P3  C3→P4  C4→P5
+
+  If we scale to 7 consumers (more than partitions):
+  C1→P0  C2→P1  ...  C6→P5  C7→IDLE (no partition to consume!)
+  → Max parallelism = number of partitions
+
+  PARTITION ASSIGNMENT STRATEGIES:
+  partition.assignment.strategy=
+  RangeAssignor      (default) – range per topic
+  RoundRobinAssignor – round robin across all topics
+  StickyAssignor     – minimize reassignments on rebalance (best)
+  CooperativeStickyAssignor – incremental rebalance (best for prod)
+
+  REBALANCE TRIGGERS:
+  • Consumer joins group
+  • Consumer leaves (crash, timeout, graceful shutdown)
+  • New partitions added to topic
+  • Subscription change
+
+  REBALANCE TYPES:
+  Eager Rebalance (old default):
+  • ALL partitions revoked from ALL consumers
+  • All consumers pause consumption (stop-the-world!)
+  • Partitions reassigned
+  • Problem: entire group pauses for seconds/minutes
+
+  Cooperative Incremental Rebalance (CooperativeStickyAssignor):
+  • Only partitions that need to move are revoked
+  • Other consumers keep processing
+  • Rebalance done in multiple small rounds
+  • Much lower impact on throughput
+
+  # Enable cooperative rebalance:
+  spring.kafka.consumer.properties.partition.assignment.strategy=
+    org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+*/`}]
+    },
+    {
+      q: "What are the different offset commit strategies and when to use each?",
+      badge: "badge-concept",
+      note: "Wrong commit strategy = data loss (at-most-once) or duplicate processing (at-least-once). Know the difference.",
+      variants: [{l:"All offset commit strategies with code", c:
+`/*
+  OFFSET COMMIT = telling Kafka "I have processed up to this offset"
+
+  STRATEGY 1: AUTO COMMIT (at-least-once, risky)
+  enable.auto.commit=true
+  auto.commit.interval.ms=5000
+  • Kafka commits every 5 seconds automatically
+  • If app crashes between commit and processing → reprocess ✓
+  • If app crashes after processing but before commit → reprocess ✓ (duplicate!)
+  • If commit happens before processing complete → data loss ✗
+  → AVOID in production for critical data
+
+  STRATEGY 2: MANUAL SYNC COMMIT (at-least-once, safe)
+*/
+@KafkaListener(topics = "order-events", groupId = "order-processor")
+public void consume(ConsumerRecord<String, String> record,
+                    Acknowledgment ack) {
+    try {
+        processOrder(record.value());
+        ack.acknowledge(); // commit AFTER successful processing
+    } catch (NonRetriableException e) {
+        ack.acknowledge(); // skip poison pill — commit anyway
+        sendToDlq(record);
+    }
+    // DO NOT catch and swallow retriable exceptions — let Kafka retry
+}
+
+/*
+  STRATEGY 3: BATCH MANUAL COMMIT (throughput + safety)
+  Commit after processing entire batch, not per message
+*/
+@KafkaListener(topics = "order-events", groupId = "order-processor",
+               containerFactory = "batchKafkaListenerContainerFactory")
+public void consumeBatch(List<ConsumerRecord<String, String>> records,
+                         Acknowledgment ack) {
+    records.forEach(r -> processOrder(r.value()));
+    ack.acknowledge(); // commit all at once
+}
+
+/*
+  STRATEGY 4: MANUAL ASYNC (highest throughput, careful)
+  Non-blocking commit — may lose offsets if broker fails between commits
+  ack.nack(sleepMs) → requeue with delay
+*/
+
+// application.yml
+// spring.kafka.listener.ack-mode: MANUAL_IMMEDIATE  # after each message
+// spring.kafka.listener.ack-mode: MANUAL           # batch mode`}]
+    },
+    {
+      q: "How do you implement a robust Kafka consumer in Spring Boot with error handling?",
+      badge: "badge-impl",
+      variants: [
+        {l:"Consumer configuration bean", c:
+`@Configuration
+public class KafkaConsumerConfig {
+
+    @Bean
+    public ConsumerFactory<String, Object> consumerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "order-processor-v1");
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
+        config.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // 5 min
+        config.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 45000);
+        config.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 3000);
+        config.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 1024);
+        config.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 500);
+        config.put(JsonDeserializer.TRUSTED_PACKAGES, "com.example.events");
+        return new DefaultKafkaConsumerFactory<>(config);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
+            ConsumerFactory<String, Object> cf, KafkaTemplate<String, Object> kt) {
+
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(cf);
+        factory.setConcurrency(3); // 3 consumer threads
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.getContainerProperties().setPollTimeout(3000);
+
+        // Error handler with DLQ + retry
+        factory.setCommonErrorHandler(errorHandler(kt));
+        return factory;
+    }
+
+    @Bean
+    public DefaultErrorHandler errorHandler(KafkaTemplate<String, Object> kt) {
+        // Dead Letter Topic publisher
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kt,
+            (record, ex) -> new TopicPartition(record.topic() + ".DLT", record.partition()));
+
+        // Retry: 3 times with exponential backoff 1s, 2s, 4s
+        ExponentialBackOffWithMaxRetries backOff = new ExponentialBackOffWithMaxRetries(3);
+        backOff.setInitialInterval(1000L);
+        backOff.setMultiplier(2.0);
+        backOff.setMaxInterval(10000L);
+
+        DefaultErrorHandler handler = new DefaultErrorHandler(recoverer, backOff);
+        // Don't retry on these — send straight to DLT
+        handler.addNotRetryableExceptions(
+            JsonParseException.class,
+            DeserializationException.class,
+            InvalidMessageException.class);
+        return handler;
+    }
+}`},
+        {l:"Consumer listener with full error handling + tracing", c:
+`@Component
+@Slf4j
+public class OrderEventConsumer {
+
+    @Autowired private OrderProcessingService orderService;
+    @Autowired private MeterRegistry meterRegistry;
+
+    @KafkaListener(
+        topics = "order-events",
+        groupId = "order-processor-v1",
+        containerFactory = "kafkaListenerContainerFactory")
+    public void onOrderEvent(
+            ConsumerRecord<String, OrderEvent> record,
+            Acknowledgment ack) {
+
+        // Restore traceId from header for distributed tracing
+        Header traceHeader = record.headers().lastHeader("traceId");
+        if (traceHeader != null) {
+            MDC.put("traceId", new String(traceHeader.value(), StandardCharsets.UTF_8));
+        }
+        MDC.put("kafkaTopic", record.topic());
+        MDC.put("kafkaPartition", String.valueOf(record.partition()));
+        MDC.put("kafkaOffset", String.valueOf(record.offset()));
+
+        log.info("Processing order event: key={} eventType={}",
+            record.key(), record.value().getEventType());
+
+        long start = System.currentTimeMillis();
+        try {
+            orderService.process(record.value());
+            ack.acknowledge();
+
+            meterRegistry.counter("kafka.messages.processed",
+                "topic", record.topic(), "status", "success").increment();
+            meterRegistry.timer("kafka.processing.duration", "topic", record.topic())
+                .record(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
+
+        } catch (Exception e) {
+            log.error("Failed to process order event: key={}", record.key(), e);
+            meterRegistry.counter("kafka.messages.processed",
+                "topic", record.topic(), "status", "error").increment();
+            throw e; // re-throw → DefaultErrorHandler handles retry/DLT
+        } finally {
+            MDC.clear();
+        }
+    }
+
+    // DLT consumer — alert + manual review
+    @KafkaListener(topics = "order-events.DLT", groupId = "order-dlt-processor")
+    public void onDeadLetter(ConsumerRecord<String, Object> record, Acknowledgment ack) {
+        log.error("DEAD LETTER: topic={} key={} reason={}",
+            record.topic(), record.key(),
+            record.headers().lastHeader("kafka_dlt-exception-message"));
+        alertService.sendAlert("DLT message received: " + record.key());
+        ack.acknowledge();
+    }
+}`}
+      ]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  4. PARTITIONING STRATEGY & ORDERING
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Partitioning Strategy & Message Ordering",
+  qs: [
+    {
+      q: "How do you design partition keys for ordering guarantees?",
+      badge: "badge-design",
+      note: "Ordering is ONLY guaranteed within a partition. Key design determines what ordering you get.",
+      variants: [{l:"Partition key design patterns", c:
+`/*
+  RULE: Messages with the SAME key always go to the SAME partition.
+  This means: same key = ordered processing.
+
+  DESIGN BY BUSINESS ENTITY:
+
+  ORDER SERVICE:
+  Key = orderId → all events for order 42 go to same partition
+  → "OrderCreated", "OrderPaid", "OrderShipped" arrive in order ✓
+
+  KEY ANTI-PATTERN:
+  Key = null → round-robin → events for same order on different partitions
+  → "OrderShipped" processed before "OrderCreated" ✗
+
+  PAYMENT SERVICE:
+  Key = paymentId OR userId
+  • paymentId: orders all payment events for one payment
+  • userId: serializes all payments for one user (prevent double-charge)
+
+  INVENTORY SERVICE:
+  Key = productId → serializes stock updates per product
+  → prevents race condition (oversell)
+
+  CUSTOM PARTITIONER: (route VIP customers to dedicated partitions)
+*/
+@Component
+public class PriorityPartitioner implements Partitioner {
+
+    @Override
+    public int partition(String topic, Object key, byte[] keyBytes,
+                         Object value, byte[] valueBytes, Cluster cluster) {
+        int numPartitions = cluster.partitionCountForTopic(topic);
+        int vipPartitions = numPartitions / 4; // first 25% for VIP
+
+        if (value instanceof OrderEvent event) {
+            if (event.isVip()) {
+                // VIP: hash to first 25% of partitions
+                return Math.abs(key.hashCode()) % vipPartitions;
+            }
+        }
+        // Regular: hash to remaining 75%
+        return vipPartitions + (Math.abs(key.hashCode()) % (numPartitions - vipPartitions));
+    }
+
+    @Override public void close() {}
+    @Override public void configure(Map<String, ?> configs) {}
+}
+// config:
+// spring.kafka.producer.properties.partitioner.class=
+//   com.example.kafka.PriorityPartitioner`}]
+    },
+    {
+      q: "How do you handle hot partitions and partition skew?",
+      badge: "badge-perf",
+      note: "Hot partition: one partition receives 90% of traffic → one consumer overloaded, others idle.",
+      variants: [{l:"Hot partition detection and fix strategies", c:
+`/*
+  CAUSE OF HOT PARTITIONS:
+  • Key skew: userId "123" places 1000x more orders than others
+  • Key = customer tier: "PREMIUM" partition gets all traffic
+  • Null key: all messages → same partition (sticky)
+
+  DETECTION:
+  // Confluent Cloud: topic metrics → bytes_in per partition
+  // Apache Kafka: kafka-consumer-groups.sh → lag per partition
+
+  FIX 1: Key salting (spread hot key across partitions)
+*/
+@Service
+public class EventPublisher {
+    private static final int SALT_COUNT = 10; // spread across 10 sub-partitions
+
+    public void publishWithSalt(String hotKey, OrderEvent event) {
+        // Add random salt: "userId_123" → "userId_123_7" (random 0-9)
+        String saltedKey = hotKey + "_" + ThreadLocalRandom.current().nextInt(SALT_COUNT);
+        kafkaTemplate.send("order-events", saltedKey, event);
+    }
+
+    // Consumer must handle: strip salt before processing
+    // NOTE: ordering guarantee for this key is now relaxed!
+}
+
+/*
+  FIX 2: Composite key to avoid concentration
+  Instead of: key = "PREMIUM"
+  Use:         key = "PREMIUM_" + orderId → natural spread
+
+  FIX 3: Increase partition count
+  • More partitions = finer grain distribution
+  • Existing messages stay in old partitions
+  • New messages use new hash mapping
+  • WARNING: repartitioning changes key→partition mapping
+  kafka-topics.sh --alter --topic order-events --partitions 12
+
+  FIX 4: Repartition at consumer side (Kafka Streams)
+  KStream<String,Order> orders = builder.stream("order-events");
+  orders.selectKey((k,v) -> v.getUserId() + "_" + v.getOrderId()) // re-key
+        .repartition(Repartitioned.numberOfPartitions(24))
+        .to("order-events-rekeyed");
+*/`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  5. CONFLUENT CLOUD & MANAGED KAFKA
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Confluent Cloud — Managed Kafka",
+  qs: [
+    {
+      q: "How do you connect Spring Boot to Confluent Cloud with SASL/SSL?",
+      badge: "badge-confluent",
+      note: "Confluent Cloud requires SASL_SSL authentication. Never hardcode API keys — use environment variables.",
+      variants: [
+        {l:"application.yml for Confluent Cloud", c:
+`spring:
+  kafka:
+    bootstrap-servers: pkc-xxxxx.us-east-1.aws.confluent.cloud:9092
+    properties:
+      security.protocol: SASL_SSL
+      sasl.mechanism: PLAIN
+      sasl.jaas.config: >
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="\${CONFLUENT_API_KEY}"
+        password="\${CONFLUENT_API_SECRET}";
+      ssl.endpoint.identification.algorithm: https
+      # For Schema Registry
+      schema.registry.url: https://psrc-xxxxx.us-east-2.aws.confluent.cloud
+      basic.auth.credentials.source: USER_INFO
+      basic.auth.user.info: "\${SR_API_KEY}:\${SR_API_SECRET}"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      acks: all
+      enable-idempotence: true
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        specific.avro.reader: true
+
+# Environment variables (set in container/k8s secrets):
+# CONFLUENT_API_KEY=ABCD1234...
+# CONFLUENT_API_SECRET=xyz/abc...
+# SR_API_KEY=SRKEY...
+# SR_API_SECRET=SRSECRET...`},
+        {l:"Confluent Cloud key features overview", c:
+`/*
+  CONFLUENT CLOUD FEATURES:
+
+  FULLY MANAGED:
+  • No broker/ZooKeeper management
+  • Auto-scaling partitions, storage, throughput
+  • Multi-region replication (Cluster Linking)
+  • 99.99% SLA (on dedicated clusters)
+
+  CLUSTER TYPES:
+  Basic      → dev/test, shared infra, lowest cost
+  Standard   → production, shared infra
+  Dedicated  → production, dedicated hardware, highest perf
+  Enterprise → compliance, private networking (VPC peering)
+
+  CONFLUENT-SPECIFIC FEATURES:
+  • Schema Registry: centralized Avro/JSON/Protobuf schema management
+  • ksqlDB: SQL over Kafka streams (stream processing without code)
+  • Kafka Connect: 200+ connectors (DB, S3, Elasticsearch, Salesforce)
+  • Cluster Linking: geo-replication across clouds/regions
+  • Flink on Confluent: managed Apache Flink for stream processing
+  • Confluent Audit Logs: track all control plane actions
+  • RBAC: role-based access control per topic/cluster
+
+  CONFLUENT CLI:
+  confluent login
+  confluent kafka cluster list
+  confluent kafka topic create order-events --partitions 6 --replication-factor 3
+  confluent kafka topic list
+  confluent kafka topic describe order-events
+  confluent kafka topic produce order-events --value-format avro --schema-registry-endpoint ...
+  confluent kafka topic consume order-events --from-beginning
+
+  COST OPTIMIZATION:
+  • Use tiered storage: hot data on broker, cold data on S3
+  • Right-size partitions (avoid over-partitioning)
+  • Use compression (lz4/zstd) to reduce storage costs
+  • Clean up unused topics and consumer groups
+*/`}
+      ]
+    },
+    {
+      q: "What is Schema Registry and how do you use Avro serialization?",
+      badge: "badge-confluent",
+      note: "Schema Registry prevents breaking changes. Producer registers schema; consumer validates against it.",
+      variants: [
+        {l:"Avro schema + producer + consumer", c:
+`// 1. Define Avro schema (order_event.avsc)
+{
+  "type": "record",
+  "name": "OrderEvent",
+  "namespace": "com.example.events",
+  "fields": [
+    {"name": "orderId",   "type": "long"},
+    {"name": "userId",    "type": "long"},
+    {"name": "status",    "type": {"type": "enum", "name": "OrderStatus",
+                          "symbols": ["CREATED","PAID","SHIPPED","DELIVERED","CANCELLED"]}},
+    {"name": "totalAmount","type": "double"},
+    {"name": "currency",  "type": "string", "default": "INR"},
+    {"name": "timestamp", "type": "long",   "logicalType": "timestamp-millis"},
+    {"name": "metadata",  "type": ["null", {"type": "map", "values": "string"}],
+                          "default": null}
+  ]
+}
+
+// 2. Add to pom.xml:
+// avro-maven-plugin → generates OrderEvent.java from .avsc
+// kafka-avro-serializer (confluent)
+
+// 3. Producer
+@Service
+public class OrderEventProducer {
+    @Autowired private KafkaTemplate<String, OrderEvent> kafkaTemplate;
+
+    public void publishOrderCreated(Order order) {
+        OrderEvent event = OrderEvent.newBuilder()
+            .setOrderId(order.getId())
+            .setUserId(order.getUserId())
+            .setStatus(OrderStatus.CREATED)
+            .setTotalAmount(order.getTotal())
+            .setCurrency("INR")
+            .setTimestamp(Instant.now().toEpochMilli())
+            .build();
+        kafkaTemplate.send("order-events", String.valueOf(order.getId()), event);
+    }
+}
+
+// 4. Consumer
+@KafkaListener(topics = "order-events", groupId = "notification-service")
+public void onOrderEvent(ConsumerRecord<String, OrderEvent> record) {
+    OrderEvent event = record.value();
+    log.info("Order {} changed to {}", event.getOrderId(), event.getStatus());
+    notificationService.notify(event);
+}`},
+        {l:"Schema compatibility and evolution", c:
+`/*
+  SCHEMA COMPATIBILITY MODES:
+  ────────────────────────────────────────────────────────
+  BACKWARD  (default):
+    New schema can read old data
+    → You can ADD optional fields (with defaults)
+    → You CANNOT remove fields without defaults
+    → CONSUMER updated first, then PRODUCER
+
+  FORWARD:
+    Old schema can read new data
+    → You can REMOVE fields
+    → PRODUCER updated first, then CONSUMER
+
+  FULL: Both backward AND forward compatible
+
+  NONE: No compatibility check (dangerous for production)
+
+  SAFE SCHEMA CHANGES (BACKWARD compatible):
+  ✓ Add field with default:
+    {"name": "discountCode", "type": ["null","string"], "default": null}
+  ✓ Add enum value (to end)
+
+  BREAKING SCHEMA CHANGES (avoid!):
+  ✗ Remove required field
+  ✗ Change field type (int → string)
+  ✗ Rename field (creates new field, old becomes unknown)
+  ✗ Add field WITHOUT default
+
+  SET COMPATIBILITY VIA REST API:
+  PUT https://schema-registry:8081/config/order-events-value
+  {"compatibility": "FULL_TRANSITIVE"}
+
+  SCHEMA EVOLUTION STRATEGY:
+  1. Always add new fields with "null" default
+  2. Use FULL_TRANSITIVE compatibility
+  3. Keep old fields for at least one release cycle
+  4. Use Confluent Cloud Schema Registry UI for governance
+*/`}
+      ]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  6. EVENT-DRIVEN PATTERNS
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Event-Driven Architecture Patterns",
+  qs: [
+    {
+      q: "What is Event Sourcing and how is it different from traditional CRUD?",
+      badge: "badge-arch",
+      note: "Event Sourcing = state derived from events, not stored directly. The log IS the source of truth.",
+      variants: [{l:"Event sourcing vs CRUD comparison + implementation", c:
+`/*
+  TRADITIONAL CRUD (state as source of truth):
+  UPDATE orders SET status='SHIPPED' WHERE id=42;
+  → We know CURRENT state but lost HISTORY
+  → Can't answer: when was it paid? how many times was it cancelled?
+
+  EVENT SOURCING (events as source of truth):
+  INSERT INTO order_events (orderId, type, payload, timestamp)
+  VALUES (42, 'OrderShipped', '{"carrier":"FedEx","tracking":"123"}', NOW())
+  → State DERIVED by replaying events
+  → Complete audit trail
+  → Can replay to any point in time
+  → Easy temporal queries
+
+  EVENT STORE (Kafka as event store):
+  Topic: order-events (log.cleanup.policy=compact, key=orderId)
+  Events: OrderCreated → OrderPaid → OrderShipped → OrderDelivered
+
+  DERIVE STATE FROM EVENTS:
+*/
+@Service
+public class OrderAggregateService {
+
+    @Autowired private KafkaTemplate<String, OrderEvent> kafkaTemplate;
+    @Autowired private OrderSnapshotRepository snapshotRepo; // cache current state
+
+    // Command → emit event
+    public void shipOrder(Long orderId, ShipmentDetails shipment) {
+        OrderAggregate current = loadAggregate(orderId);
+        if (!current.canShip()) throw new InvalidStateException("Order not paid yet");
+
+        OrderShippedEvent event = new OrderShippedEvent(orderId, shipment, Instant.now());
+        kafkaTemplate.send("order-events", orderId.toString(), event);
+        // Snapshot updated by consumer
+    }
+
+    // Rebuild state by replaying events
+    public OrderAggregate loadAggregate(Long orderId) {
+        // Check snapshot first (performance optimization)
+        return snapshotRepo.findById(orderId)
+            .orElseGet(() -> replayFromKafka(orderId));
+    }
+
+    private OrderAggregate replayFromKafka(Long orderId) {
+        OrderAggregate aggregate = new OrderAggregate(orderId);
+        // Seek to beginning for this key (using consumer with specific offset)
+        List<OrderEvent> events = kafkaReader.readAllForKey("order-events", orderId.toString());
+        events.forEach(aggregate::apply); // apply each event
+        return aggregate;
+    }
+}
+
+// Aggregate applies events to build state
+public class OrderAggregate {
+    private Long id;
+    private OrderStatus status;
+    private BigDecimal total;
+    private List<OrderEvent> uncommittedEvents = new ArrayList<>();
+
+    public void apply(OrderCreatedEvent e) { this.status = CREATED; this.total = e.getTotal(); }
+    public void apply(OrderPaidEvent e)    { this.status = PAID; }
+    public void apply(OrderShippedEvent e) { this.status = SHIPPED; }
+    public boolean canShip() { return status == PAID; }
+}`}]
+    },
+    {
+      q: "What is the Saga Pattern and how do you implement it with Kafka?",
+      badge: "badge-scenario",
+      note: "Saga replaces distributed transactions. Each step publishes success/failure events for compensating actions.",
+      variants: [
+        {l:"Choreography Saga (event-driven)", c:
+`/*
+  SCENARIO: Place order → reserve inventory → process payment → confirm order
+  If payment fails → compensate: release inventory, cancel order
+
+  CHOREOGRAPHY SAGA (no central coordinator):
+  Each service listens for events and reacts.
+
+  ORDER SERVICE ─── OrderCreated ────► INVENTORY SERVICE
+                                              │
+                                     InventoryReserved ──► PAYMENT SERVICE
+                                     InventoryFailed  ──►  ORDER SERVICE (cancel)
+                                                                   │
+                                                          PaymentSuccess ──► ORDER SERVICE (confirm)
+                                                          PaymentFailed  ──► INVENTORY SERVICE (release)
+                                                                             ORDER SERVICE (cancel)
+*/
+
+// Inventory Service consumer
+@KafkaListener(topics = "order-events", groupId = "inventory-saga")
+public void onOrderCreated(ConsumerRecord<String, OrderEvent> record, Acknowledgment ack) {
+    if (!"OrderCreated".equals(record.value().getEventType())) {
+        ack.acknowledge(); return;
+    }
+    try {
+        inventoryService.reserve(record.value().getOrderId(),
+                                 record.value().getItems());
+        // Publish success event
+        kafkaTemplate.send("inventory-events",
+            record.key(),
+            new InventoryReservedEvent(record.value().getOrderId()));
+    } catch (InsufficientStockException e) {
+        // Publish failure (compensating event)
+        kafkaTemplate.send("inventory-events",
+            record.key(),
+            new InventoryReservationFailedEvent(record.value().getOrderId(), e.getMessage()));
+    }
+    ack.acknowledge();
+}
+
+// Payment Service consumer
+@KafkaListener(topics = "inventory-events", groupId = "payment-saga")
+public void onInventoryReserved(ConsumerRecord<String, InventoryEvent> record, Acknowledgment ack) {
+    if (!"InventoryReserved".equals(record.value().getEventType())) {
+        ack.acknowledge(); return;
+    }
+    try {
+        paymentService.charge(record.value().getOrderId());
+        kafkaTemplate.send("payment-events", record.key(),
+            new PaymentSuccessEvent(record.value().getOrderId()));
+    } catch (PaymentException e) {
+        kafkaTemplate.send("payment-events", record.key(),
+            new PaymentFailedEvent(record.value().getOrderId(), e.getMessage()));
+    }
+    ack.acknowledge();
+}`},
+        {l:"Orchestration Saga (central coordinator)", c:
+`/*
+  ORCHESTRATION SAGA: Central orchestrator directs each step.
+  Easier to understand, trace, and debug than choreography.
+*/
+@Service
+@Slf4j
+public class OrderSagaOrchestrator {
+
+    @KafkaListener(topics = "saga-commands", groupId = "saga-orchestrator")
+    public void processCommand(SagaCommand command, Acknowledgment ack) {
+        OrderSagaState state = sagaStateRepo.findByOrderId(command.getOrderId());
+        switch (state.getStep()) {
+            case STARTED -> executeReserveInventory(command.getOrderId(), state);
+            case INVENTORY_RESERVED -> executeProcessPayment(command.getOrderId(), state);
+            case PAYMENT_SUCCESS -> executeConfirmOrder(command.getOrderId(), state);
+            case INVENTORY_FAILED, PAYMENT_FAILED -> executeCompensation(state);
+        }
+        ack.acknowledge();
+    }
+
+    private void executeReserveInventory(Long orderId, OrderSagaState state) {
+        kafkaTemplate.send("inventory-commands", orderId.toString(),
+            new ReserveInventoryCommand(orderId, state.getItems()));
+        state.setStep(SagaStep.AWAITING_INVENTORY);
+        sagaStateRepo.save(state);
+    }
+
+    private void executeCompensation(OrderSagaState state) {
+        // Rollback in reverse order
+        if (state.isInventoryReserved()) {
+            kafkaTemplate.send("inventory-commands", state.getOrderId().toString(),
+                new ReleaseInventoryCommand(state.getOrderId()));
+        }
+        state.setStep(SagaStep.COMPENSATING);
+        sagaStateRepo.save(state);
+    }
+}`}
+      ]
+    },
+    {
+      q: "What is CQRS with Kafka and how do you implement read models?",
+      badge: "badge-arch",
+      note: "CQRS = Command Query Responsibility Segregation. Writes go to Kafka, reads from materialized views.",
+      variants: [{l:"CQRS + Kafka event-driven read model", c:
+`/*
+  CQRS FLOW:
+  ─────────────────────────────────────────────────────────
+  WRITE SIDE (Command):
+  POST /orders → OrderService → DB (write model) → Kafka: OrderCreated
+
+  READ SIDE (Query):
+  GET /orders?userId=42 → OrderQueryService → Redis/Elasticsearch (read model)
+
+  Read model is a denormalized, query-optimized projection
+  built from consuming Kafka events.
+
+  BENEFITS:
+  • Write DB optimized for transactions (normalized)
+  • Read DB optimized for queries (denormalized, indexed)
+  • Scale read and write independently
+  • Multiple read models for different query patterns
+*/
+
+// Read model builder (consumes events, updates projections)
+@Service
+@Slf4j
+public class OrderReadModelBuilder {
+
+    @Autowired private OrderSummaryRepository readRepo; // denormalized DB
+    @Autowired private RedisTemplate<String, OrderSummary> redis;
+
+    @KafkaListener(topics = "order-events", groupId = "read-model-builder")
+    public void buildReadModel(ConsumerRecord<String, OrderEvent> record, Acknowledgment ack) {
+        OrderEvent event = record.value();
+
+        switch (event.getEventType()) {
+            case "OrderCreated" -> {
+                OrderSummary summary = OrderSummary.builder()
+                    .orderId(event.getOrderId())
+                    .userId(event.getUserId())
+                    .status("CREATED")
+                    .total(event.getTotal())
+                    .createdAt(event.getTimestamp())
+                    .build();
+                readRepo.save(summary);
+                // Cache in Redis for fast lookup
+                redis.opsForValue().set("order:" + event.getOrderId(),
+                    summary, Duration.ofMinutes(30));
+            }
+            case "OrderPaid" -> {
+                readRepo.updateStatus(event.getOrderId(), "PAID");
+                redis.delete("order:" + event.getOrderId()); // invalidate cache
+            }
+            case "OrderShipped" -> {
+                readRepo.updateStatusAndTracking(event.getOrderId(),
+                    "SHIPPED", event.getTrackingNumber());
+            }
+        }
+        ack.acknowledge();
+    }
+}
+
+// Query service reads from projection (not write DB)
+@RestController
+@RequestMapping("/api/orders")
+public class OrderQueryController {
+
+    @GetMapping("/{id}")
+    public OrderSummary getOrder(@PathVariable Long id) {
+        // Try Redis first
+        OrderSummary cached = redis.opsForValue().get("order:" + id);
+        if (cached != null) return cached;
+        // Fallback to read model DB
+        return readRepo.findById(id).orElseThrow(...);
+    }
+
+    @GetMapping
+    public Page<OrderSummary> getByUser(@RequestParam Long userId, Pageable pageable) {
+        return readRepo.findByUserId(userId, pageable); // optimized query
+    }
+}`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  7. KAFKA STREAMS
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Kafka Streams — Stream Processing",
+  qs: [
+    {
+      q: "What is Kafka Streams and when should you use it vs Flink/Spark?",
+      badge: "badge-concept",
+      note: "Kafka Streams runs INSIDE your Spring Boot app — no separate cluster needed. Perfect for microservice-level stream processing.",
+      variants: [{l:"Kafka Streams vs alternatives comparison", c:
+`/*
+  KAFKA STREAMS:
+  • Java library embedded in your app (no cluster to manage)
+  • Input/output: Kafka topics only
+  • Stateful: local RocksDB state stores (changelog topics for recovery)
+  • Exactly-once: supported (processing.guarantee=exactly_once_v2)
+  • Best for: per-microservice stream processing, enrichment, filtering, aggregation
+  • Deploy: same as your Spring Boot service
+
+  APACHE FLINK:
+  • Separate cluster (TaskManagers + JobManager)
+  • Any input/output (Kafka, JDBC, S3, Kinesis...)
+  • True event-time processing with watermarks
+  • Complex CEP (Complex Event Processing)
+  • Best for: large-scale batch + streaming, ML pipelines
+  • Confluent Cloud: managed Flink (no cluster ops)
+
+  APACHE SPARK STREAMING:
+  • Micro-batch model (not true streaming)
+  • Strong batch + ML ecosystem
+  • Best for: existing Spark pipelines + streaming additions
+
+  KSQLDB (Confluent):
+  • SQL over Kafka streams — no code needed
+  • Runs on ksqlDB cluster
+  • Best for: quick aggregations, filters, joins without writing code
+  CREATE STREAM shipped_orders AS
+    SELECT orderId, userId, total
+    FROM order_events
+    WHERE status = 'SHIPPED';
+
+  CHOOSE KAFKA STREAMS WHEN:
+  ✓ Stream processing within a single microservice
+  ✓ Enrichment (lookup user data while processing order events)
+  ✓ Simple aggregations (count orders per user in 5-min window)
+  ✓ Don't want to manage a separate processing cluster
+  ✓ Need exactly-once guarantees with Kafka
+*/`}]
+    },
+    {
+      q: "How do you implement Kafka Streams with windowing and aggregation in Spring Boot?",
+      badge: "badge-impl",
+      variants: [{l:"Kafka Streams topology with windowed aggregation", c:
+`// pom.xml: spring-kafka + kafka-streams
+
+@Configuration
+@EnableKafkaStreams
+public class KafkaStreamsConfig {
+
+    @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
+    public KafkaStreamsConfiguration kafkaStreamsConfig() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "order-analytics-v1");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE_V2);
+        props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 1000);
+        props.put(StreamsConfig.REPLICATION_FACTOR_CONFIG, 3);
+        return new KafkaStreamsConfiguration(props);
+    }
+}
+
+@Component
+public class OrderStreamTopology {
+
+    @Autowired
+    void buildPipeline(StreamsBuilder streamsBuilder) {
+
+        // Input stream
+        KStream<String, OrderEvent> orders = streamsBuilder
+            .stream("order-events", Consumed.with(Serdes.String(), orderEventSerde()));
+
+        // 1. FILTER: only paid orders
+        KStream<String, OrderEvent> paidOrders = orders
+            .filter((key, value) -> "PAID".equals(value.getStatus()));
+
+        // 2. MAP: rekey by userId for user-level aggregations
+        KStream<String, OrderEvent> byUser = paidOrders
+            .selectKey((orderId, event) -> String.valueOf(event.getUserId()));
+
+        // 3. AGGREGATE: total revenue per user per 5-minute window
+        KTable<Windowed<String>, RevenueAggregate> revenuePerUser = byUser
+            .groupByKey(Grouped.with(Serdes.String(), orderEventSerde()))
+            .windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofMinutes(5)))
+            .aggregate(
+                RevenueAggregate::new,                     // initializer
+                (userId, event, aggregate) -> {            // aggregator
+                    aggregate.setUserId(userId);
+                    aggregate.addOrder(event.getOrderId(), event.getTotal());
+                    return aggregate;
+                },
+                Materialized.<String, RevenueAggregate, WindowStore<Bytes, byte[]>>as(
+                    "revenue-per-user-5min")
+                    .withValueSerde(revenueAggregateSerde())
+            );
+
+        // 4. OUTPUT: publish aggregated results
+        revenuePerUser.toStream()
+            .map((windowedKey, agg) -> KeyValue.pair(
+                windowedKey.key(),
+                new RevenueEvent(windowedKey.key(), agg, windowedKey.window())))
+            .to("user-revenue-5min", Produced.with(Serdes.String(), revenueEventSerde()));
+
+        // 5. BRANCH: route high-value orders to priority topic
+        orders.split()
+            .branch((key, value) -> value.getTotal() > 50000,
+                    Branched.withConsumer(s -> s.to("high-value-orders")))
+            .branch((key, value) -> value.getTotal() > 10000,
+                    Branched.withConsumer(s -> s.to("medium-value-orders")))
+            .defaultBranch(Branched.withConsumer(s -> s.to("regular-orders")));
+
+        // 6. JOIN: enrich order with user data (KTable join)
+        KTable<String, UserProfile> users = streamsBuilder
+            .table("user-profiles", Consumed.with(Serdes.String(), userProfileSerde()));
+
+        KStream<String, EnrichedOrder> enriched = byUser
+            .join(users,
+                (orderEvent, userProfile) -> new EnrichedOrder(orderEvent, userProfile),
+                Joined.with(Serdes.String(), orderEventSerde(), userProfileSerde()));
+
+        enriched.to("enriched-order-events");
+    }
+}`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  8. KAFKA CONNECT
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Kafka Connect — Data Pipelines",
+  qs: [
+    {
+      q: "What is Kafka Connect and how do you use it for CDC (Change Data Capture)?",
+      badge: "badge-impl",
+      note: "Kafka Connect + Debezium CDC captures every DB row change as a Kafka event. No application code change needed.",
+      variants: [{l:"Debezium CDC connector config + Spring consumer", c:
+`/*
+  KAFKA CONNECT ARCHITECTURE:
+  Source Connector  → reads from external system → publishes to Kafka
+  Sink Connector    → reads from Kafka → writes to external system
+
+  CDC WITH DEBEZIUM (MySQL → Kafka):
+  Every INSERT/UPDATE/DELETE on MySQL table → Kafka event
+  Zero application code change!
+  Uses MySQL binlog for capturing changes.
+
+  DEPLOY CONNECTOR (REST API):
+*/
+// POST http://kafka-connect:8083/connectors
+{
+  "name": "mysql-orders-cdc",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "database.hostname": "mysql",
+    "database.port": "3306",
+    "database.user": "debezium",
+    "database.password": "dbz_password",
+    "database.server.id": "1",
+    "topic.prefix": "mysql",
+    "database.include.list": "ecommerce",
+    "table.include.list": "ecommerce.orders,ecommerce.products",
+    "schema.history.internal.kafka.topic": "schema-changes.ecommerce",
+    "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.add.fields": "op,ts_ms",
+    "transforms.unwrap.delete.handling.mode": "rewrite"
+  }
+}
+
+// CDC Event format on topic "mysql.ecommerce.orders":
+// INSERT → op: "c" (create)
+// UPDATE → op: "u" (update)
+// DELETE → op: "d" (delete)
+
+// Spring Boot consumer of CDC events
+@KafkaListener(topics = "mysql.ecommerce.orders", groupId = "cdc-processor")
+public void onOrderCdcEvent(ConsumerRecord<String, JsonNode> record, Acknowledgment ack) {
+    JsonNode event = record.value();
+    String operation = event.get("__op").asText();
+    Long orderId = event.get("id").asLong();
+
+    switch (operation) {
+        case "c" -> searchIndexService.indexOrder(event);
+        case "u" -> searchIndexService.updateOrder(orderId, event);
+        case "d" -> searchIndexService.deleteOrder(orderId);
+    }
+    ack.acknowledge();
+}
+
+// USEFUL CONNECTORS:
+// Source: Debezium (MySQL/Postgres/MongoDB CDC), JDBC Source, S3 Source
+// Sink: Elasticsearch, S3, BigQuery, Snowflake, MongoDB, JDBC Sink`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  9. DEAD LETTER QUEUE & ERROR HANDLING
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Dead Letter Queue & Poison Pill Handling",
+  qs: [
+    {
+      q: "How do you implement a comprehensive DLQ strategy in Kafka?",
+      badge: "badge-impl",
+      note: "Poison pill = message that always fails. Without DLQ, it blocks the partition forever. DLQ must be monitored and replayed.",
+      variants: [{l:"Full DLQ implementation with retry topics", c:
+`/*
+  STRATEGY: Retry topics + DLQ
+  ─────────────────────────────────────────────────────────────
+  order-events           → main topic (process here first)
+       │ fail
+       ▼
+  order-events.RETRY-1   → retry after 1 min
+       │ fail
+       ▼
+  order-events.RETRY-2   → retry after 5 min
+       │ fail
+       ▼
+  order-events.RETRY-3   → retry after 30 min
+       │ fail
+       ▼
+  order-events.DLT        → dead letter (alert + manual review)
+
+  This is the pattern used by Spring Kafka's RetryTopicConfiguration.
+*/
+
+@Configuration
+public class RetryTopicConfig {
+
+    @Bean
+    public RetryTopicConfiguration retryTopicConfiguration(
+            KafkaTemplate<String, Object> kt) {
+        return RetryTopicConfigurationBuilder
+            .newInstance()
+            .fixedBackOff(60_000L)           // 1 minute between retries
+            .maxAttempts(4)                  // 3 retries + 1 original = 4
+            .retryTopicSuffix("-RETRY")
+            .dltSuffix("-DLT")
+            .retryOn(RetriableException.class)
+            .notRetryOn(NonRetriableException.class,
+                        DeserializationException.class)
+            .dltHandlerMethod("dltProcessor", "processDlt")
+            .create(kt);
+    }
+}
+
+// Main listener (auto-wired with retry logic)
+@Component
+@Slf4j
+public class OrderEventListener {
+
+    @RetryableTopic(
+        attempts = "4",
+        backoff = @Backoff(delay = 60_000, multiplier = 5, maxDelay = 1_800_000),
+        dltStrategy = DltStrategy.FAIL_ON_ERROR,
+        kafkaTemplate = "kafkaTemplate")
+    @KafkaListener(topics = "order-events", groupId = "order-processor")
+    public void process(ConsumerRecord<String, OrderEvent> record, Acknowledgment ack) {
+        log.info("Processing: {}", record.value().getOrderId());
+        orderService.process(record.value()); // throws on failure → retry
+        ack.acknowledge();
+    }
+
+    @DltHandler
+    public void processDlt(ConsumerRecord<String, OrderEvent> record) {
+        log.error("DLT received: topic={} key={} attempt={}",
+            record.topic(), record.key(),
+            record.headers().lastHeader("kafka_retryTopic-backOffDelay"));
+
+        // 1. Persist to dead_letter_events table
+        deadLetterRepo.save(new DeadLetterEvent(record));
+        // 2. Alert ops team
+        alertService.sendPagerDuty("DLT message: " + record.key());
+        // 3. Acknowledge so we don't re-process
+    }
+}
+
+// Manual DLT replay endpoint (admin)
+@RestController
+@RequestMapping("/api/admin/kafka")
+@PreAuthorize("hasRole('ADMIN')")
+public class DltAdminController {
+
+    @PostMapping("/dlt/{topic}/replay")
+    public ResponseEntity<String> replayDlt(@PathVariable String topic,
+                                             @RequestParam Long messageId) {
+        DeadLetterEvent event = deadLetterRepo.findById(messageId).orElseThrow();
+        kafkaTemplate.send(topic, event.getOriginalKey(), event.getPayload());
+        event.setReplayed(true);
+        deadLetterRepo.save(event);
+        return ResponseEntity.ok("Replayed message " + messageId + " to " + topic);
+    }
+}`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  10. PERFORMANCE TUNING
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Performance Tuning & Monitoring",
+  qs: [
+    {
+      q: "What are the key Kafka performance tuning parameters for high throughput?",
+      badge: "badge-perf",
+      note: "Default configs are conservative. For high throughput systems, tune these carefully.",
+      variants: [{l:"Complete producer + consumer + broker tuning guide", c:
+`/*
+  PRODUCER TUNING (maximize throughput):
+  ─────────────────────────────────────────────────────────────
+  batch.size=131072             # 128KB batches (default 16KB)
+  linger.ms=20                  # wait 20ms to fill batch (default 0)
+  compression.type=lz4          # best compression/speed ratio
+  buffer.memory=134217728       # 128MB buffer (default 32MB)
+  max.in.flight.requests.per.connection=5  # pipeline requests
+  acks=1                        # leader ack only (sacrifice some durability)
+  → Expect: ~1-2 million msgs/sec
+
+  PRODUCER TUNING (maximize durability):
+  acks=all + enable.idempotence=true + retries=MAX_INT
+  min.insync.replicas=2         # on broker/topic
+  → Lower throughput but zero data loss
+
+  CONSUMER TUNING (maximize throughput):
+  ─────────────────────────────────────────────────────────────
+  fetch.min.bytes=65536         # wait for 64KB before returning (default 1)
+  fetch.max.wait.ms=500         # wait up to 500ms (default 500ms)
+  max.poll.records=500          # process 500 records per poll (default 500)
+  max.partition.fetch.bytes=1048576  # 1MB per partition per fetch
+  # Scale consumers = scale instances (one per partition max)
+
+  BROKER TUNING:
+  ─────────────────────────────────────────────────────────────
+  num.network.threads=8         # network I/O threads (default 3)
+  num.io.threads=16             # disk I/O threads (default 8)
+  socket.send.buffer.bytes=102400
+  socket.receive.buffer.bytes=102400
+  log.flush.interval.messages=10000  # fsync every 10K msgs (rely on OS cache)
+  log.flush.interval.ms=1000         # or every 1 sec
+
+  JVM TUNING:
+  -Xmx6g -Xms6g                 # heap (don't use more — leaves room for page cache)
+  -XX:+UseG1GC                  # G1GC (default Java 9+)
+  -XX:MaxGCPauseMillis=20       # target GC pause
+  -XX:InitiatingHeapOccupancyPercent=35
+
+  KEY METRICS TO MONITOR:
+  kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec
+  kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec
+  kafka.consumer:type=consumer-fetch-manager-metrics,name=records-lag-max
+  kafka.producer:type=producer-metrics,name=record-error-rate
+*/`}]
+    },
+    {
+      q: "How do you monitor Kafka consumer lag and set up alerts?",
+      badge: "badge-perf",
+      note: "Consumer lag = messages produced but not yet consumed. High lag = consumers falling behind = system at risk.",
+      variants: [{l:"Lag monitoring with Micrometer + Prometheus + Alertmanager", c:
+`// Spring Boot: expose Kafka consumer lag via Actuator/Micrometer
+// pom.xml: spring-boot-starter-actuator, micrometer-registry-prometheus
+
+# application.yml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  metrics:
+    tags:
+      application: \${spring.application.name}
+
+// Custom lag monitor (poll and expose as gauge)
+@Component
+@Slf4j
+public class KafkaLagMonitor {
+
+    @Autowired private MeterRegistry meterRegistry;
+    @Autowired private AdminClient adminClient;
+
+    @Scheduled(fixedDelay = 30_000) // check every 30 seconds
+    public void checkLag() {
+        try {
+            Map<TopicPartition, OffsetAndMetadata> committed =
+                adminClient.listConsumerGroupOffsets("order-processor-v1")
+                    .partitionsToOffsetAndMetadata().get();
+
+            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> latestOffsets =
+                adminClient.listOffsets(
+                    committed.keySet().stream().collect(Collectors.toMap(
+                        tp -> tp, tp -> OffsetSpec.latest()))).all().get();
+
+            committed.forEach((tp, committedOffset) -> {
+                long latest = latestOffsets.get(tp).offset();
+                long lag = latest - committedOffset.offset();
+
+                // Register as Prometheus gauge
+                Gauge.builder("kafka.consumer.lag", () -> lag)
+                    .tag("topic", tp.topic())
+                    .tag("partition", String.valueOf(tp.partition()))
+                    .tag("consumer_group", "order-processor-v1")
+                    .register(meterRegistry);
+
+                if (lag > 10000) {
+                    log.warn("HIGH LAG: topic={} partition={} lag={}",
+                        tp.topic(), tp.partition(), lag);
+                }
+            });
+        } catch (Exception e) {
+            log.error("Failed to check consumer lag", e);
+        }
+    }
+}
+
+// Prometheus alert rule (prometheus/rules.yml):
+// groups:
+//   - name: kafka
+//     rules:
+//       - alert: KafkaHighConsumerLag
+//         expr: kafka_consumer_lag > 50000
+//         for: 5m
+//         labels:
+//           severity: warning
+//         annotations:
+//           summary: "Consumer group {{ $labels.consumer_group }} lag > 50000"
+//           description: "Topic {{ $labels.topic }}, Partition {{ $labels.partition }}"
+//
+//       - alert: KafkaCriticalConsumerLag
+//         expr: kafka_consumer_lag > 500000
+//         for: 2m
+//         labels:
+//           severity: critical`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  11. SCENARIO-BASED INTERVIEW QUESTIONS
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Real-World Scenarios & Interview Problems",
+  qs: [
+    {
+      q: "SCENARIO: Design an event-driven order processing system end-to-end",
+      badge: "badge-scenario",
+      note: "Classic system design interview question at Amazon, Flipkart, Swiggy, Zomato.",
+      variants: [{l:"Full system design with Kafka", c:
+`/*
+  SYSTEM: E-Commerce Order Processing
+  Scale: 100K orders/day, peak 500 orders/second
+
+  TOPICS DESIGN:
+  ─────────────────────────────────────────────────────────────
+  Topic                   Partitions  Retention  Key
+  order-commands          12          1 day       orderId
+  order-events            12          7 days      orderId
+  inventory-events        6           7 days      productId
+  payment-events          6           7 days      orderId
+  notification-events     4           1 day       userId
+  analytics-events        12          30 days     userId
+  order-events.DLT        12          30 days     orderId
+
+  SERVICES & CONSUMER GROUPS:
+  ─────────────────────────────────────────────────────────────
+  order-service      → produces to order-events
+  inventory-service  → consumes order-events (saga step 1)
+                     → produces to inventory-events
+  payment-service    → consumes inventory-events (saga step 2)
+                     → produces to payment-events
+  notification-svc   → consumes order-events, payment-events
+  analytics-svc      → consumes order-events (Kafka Streams)
+  search-svc         → consumes order-events via CDC (Debezium)
+
+  COMPLETE FLOW:
+  ─────────────────────────────────────────────────────────────
+  1. User: POST /api/orders
+  2. order-service: validate → save to DB (outbox pattern) → publish OrderCreated
+  3. inventory-service: consume OrderCreated → reserve stock → publish InventoryReserved
+  4. payment-service: consume InventoryReserved → charge card → publish PaymentSuccess
+  5. order-service: consume PaymentSuccess → update order status → publish OrderConfirmed
+  6. notification-service: consume OrderConfirmed → send email/SMS
+  7. analytics-service: Kafka Streams → real-time revenue aggregation
+
+  IF PAYMENT FAILS:
+  4a. payment-service: publish PaymentFailed
+  4b. inventory-service: consume PaymentFailed → release reserved stock
+  4c. order-service: consume PaymentFailed → update to CANCELLED → publish OrderCancelled
+  4d. notification-service: send cancellation email
+
+  MONITORING:
+  • Consumer lag per topic: alert if > 10K messages
+  • DLT topic: alert on any message
+  • Payment failure rate: alert if > 5% in 5 minutes
+  • Order processing time: P99 < 5 seconds
+*/`}]
+    },
+    {
+      q: "SCENARIO: How do you handle duplicate message processing (idempotent consumers)?",
+      badge: "badge-scenario",
+      note: "At-least-once delivery = duplicates happen. Your consumer MUST be idempotent.",
+      variants: [{l:"Idempotent consumer strategies", c:
+`/*
+  CAUSES OF DUPLICATES:
+  1. Consumer processed message but crashed before committing offset
+  2. Producer retry after timeout (even if broker received it)
+  3. Rebalance: partition reassigned, new consumer re-reads uncommitted offsets
+
+  STRATEGY 1: Idempotent database operations
+  Use INSERT ... ON DUPLICATE KEY UPDATE (MySQL)
+  or INSERT ... ON CONFLICT DO UPDATE (Postgres)
+*/
+@Service
+@Transactional
+public class InventoryService {
+
+    public void reserveStock(OrderCreatedEvent event) {
+        // Idempotent: if reservation already exists, it's a no-op
+        reservationRepo.insertOrIgnore(
+            InventoryReservation.builder()
+                .orderId(event.getOrderId())     // UNIQUE constraint on orderId
+                .productId(event.getProductId())
+                .quantity(event.getQuantity())
+                .status("RESERVED")
+                .build());
+    }
+}
+// SQL: INSERT INTO inventory_reservation (order_id, product_id, quantity, status)
+//      VALUES (?, ?, ?, ?)
+//      ON CONFLICT (order_id) DO NOTHING;   ← duplicate → skip
+
+/*
+  STRATEGY 2: Deduplication table with TTL
+*/
+@Service
+public class DeduplicatingConsumer {
+    @Autowired private RedisTemplate<String, String> redis;
+
+    public boolean isAlreadyProcessed(String messageId) {
+        String key = "processed:" + messageId;
+        Boolean isNew = redis.opsForValue().setIfAbsent(key, "1", Duration.ofHours(24));
+        return !Boolean.TRUE.equals(isNew); // true = already processed (duplicate)
+    }
+}
+
+@KafkaListener(topics = "payment-events")
+public void onPayment(ConsumerRecord<String, PaymentEvent> record, Acknowledgment ack) {
+    String messageId = record.key() + "-" + record.offset(); // unique per message
+    if (deduplicator.isAlreadyProcessed(messageId)) {
+        log.warn("Duplicate message detected, skipping: {}", messageId);
+        ack.acknowledge();
+        return;
+    }
+    paymentService.process(record.value());
+    ack.acknowledge();
+}
+
+/*
+  STRATEGY 3: Event version / sequence check
+  Each entity tracks last processed event sequence
+  Consumer: only process if event.sequence > entity.lastProcessedSequence
+*/`}]
+    },
+    {
+      q: "SCENARIO: Design a real-time notification system using Kafka",
+      badge: "badge-scenario",
+      note: "Classic use case: send email/SMS/push notification for various events from multiple services.",
+      variants: [{l:"Notification service design with Kafka", c:
+`/*
+  DESIGN: One notification service consumes events from all services
+  and routes to appropriate channels (email/SMS/push/in-app)
+
+  TOPICS CONSUMED:
+  order-events       → order confirmation, shipping updates
+  payment-events     → payment receipt, failure alerts
+  promo-events       → flash sale notifications
+  security-events    → login from new device, password change
+*/
+
+// Notification event envelope
+@Data
+@Builder
+public class NotificationTrigger {
+    private String userId;
+    private String eventType;         // "ORDER_CONFIRMED", "PAYMENT_FAILED"
+    private Map<String, String> data; // dynamic template data
+    private List<String> channels;    // ["EMAIL", "SMS", "PUSH"]
+    private NotificationPriority priority; // HIGH, NORMAL, LOW
+    private boolean deduplicate;
+    private Duration deduplicationWindow;
+}
+
+@Service
+@Slf4j
+public class NotificationDispatcher {
+
+    @Autowired private EmailService emailService;
+    @Autowired private SmsService smsService;
+    @Autowired private PushService pushService;
+    @Autowired private RedisTemplate<String, String> redis;
+
+    @KafkaListener(topics = {"order-events", "payment-events", "security-events"},
+                   groupId = "notification-service")
+    public void dispatch(ConsumerRecord<String, Object> record, Acknowledgment ack) {
+
+        NotificationTrigger trigger = notificationMapper.mapToTrigger(record);
+        if (trigger == null) { ack.acknowledge(); return; }
+
+        // Deduplication: don't spam same user for same event
+        if (trigger.isDeduplicate()) {
+            String dedupeKey = "notif:" + trigger.getUserId() + ":" + trigger.getEventType();
+            Boolean isNew = redis.opsForValue().setIfAbsent(dedupeKey, "1",
+                trigger.getDeduplicationWindow());
+            if (!Boolean.TRUE.equals(isNew)) {
+                log.info("Notification deduped: {} {}", trigger.getUserId(), trigger.getEventType());
+                ack.acknowledge(); return;
+            }
+        }
+
+        // User preferences from DB/cache
+        UserNotificationPrefs prefs = prefsService.getPrefs(trigger.getUserId());
+
+        // Dispatch to each allowed channel concurrently
+        List<CompletableFuture<Void>> futures = trigger.getChannels().stream()
+            .filter(ch -> prefs.isEnabled(ch))
+            .map(channel -> CompletableFuture.runAsync(() ->
+                sendToChannel(channel, trigger, prefs)))
+            .collect(Collectors.toList());
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+            .get(10, TimeUnit.SECONDS);
+
+        ack.acknowledge();
+    }
+
+    private void sendToChannel(String channel, NotificationTrigger trigger,
+                                UserNotificationPrefs prefs) {
+        String template = templateService.render(trigger.getEventType(), trigger.getData());
+        switch (channel) {
+            case "EMAIL" -> emailService.send(prefs.getEmail(), template);
+            case "SMS"   -> smsService.send(prefs.getPhone(), template);
+            case "PUSH"  -> pushService.send(prefs.getDeviceTokens(), template);
+        }
+    }
+}`}]
+    },
+    {
+      q: "SCENARIO: How do you migrate from REST calls to event-driven architecture?",
+      badge: "badge-scenario",
+      note: "Migration strategy is a senior engineer interview question. Can't rewrite everything at once.",
+      variants: [{l:"Strangler fig migration strategy", c:
+`/*
+  SCENARIO: Order service synchronously calls Payment and Inventory via REST.
+  Migrate to event-driven without breaking production.
+
+  STRATEGY: Strangler Fig + Dual Mode
+
+  PHASE 1: Add Kafka alongside existing REST (no risk)
+  ─────────────────────────────────────────────────────────────
+*/
+@Service
+public class OrderService {
+    @Autowired private PaymentServiceClient paymentClient; // existing REST
+    @Autowired private KafkaTemplate<String, Object> kafka; // NEW
+
+    public Order createOrder(OrderRequest req) {
+        // Existing REST call still works
+        PaymentResult payment = paymentClient.processPayment(req);
+        Order order = orderRepo.save(new Order(req, payment));
+
+        // NEW: also publish event (consumers can start consuming)
+        kafka.send("order-events", order.getId().toString(),
+            new OrderCreatedEvent(order)); // shadow publish
+
+        return order;
+    }
+}
+
+/*
+  PHASE 2: Enable consumers, verify they process correctly
+  Run for 2-4 weeks. Compare REST-driven vs event-driven results.
+
+  PHASE 3: Switch write path — publish FIRST, then REST
+*/
+@Transactional
+public Order createOrder(OrderRequest req) {
+    Order order = orderRepo.save(new Order(req));
+    kafka.send("order-events", order.getId().toString(), new OrderCreatedEvent(order));
+    // REST call now secondary / for synchronous response only
+    PaymentResult payment = paymentClient.preAuthorize(req); // lighter call
+    order.setPreAuthId(payment.getPreAuthId());
+    return orderRepo.save(order);
+    // Actual payment done async by payment-service consuming order-events
+}
+
+/*
+  PHASE 4: Remove REST calls between services
+  Each service only talks to others via Kafka events.
+  Keep REST only for:
+  • Synchronous queries (GET requests)
+  • External client facing APIs
+  • Operations requiring immediate response
+
+  MIGRATION CHECKLIST:
+  ✓ Outbox pattern for write reliability
+  ✓ Consumer idempotency verified
+  ✓ DLT + monitoring in place
+  ✓ Consumer lag baselines established
+  ✓ Rollback plan if event processing fails
+  ✓ Schema registry in place for evolution
+*/`}]
+    }
+  ]
+},
+// ═══════════════════════════════════════════════════════════════════
+//  12. TESTING KAFKA APPLICATIONS
+// ═══════════════════════════════════════════════════════════════════
+{
+  title: "Testing Kafka Applications",
+  qs: [
+    {
+      q: "How do you write unit and integration tests for Kafka producers and consumers?",
+      badge: "badge-testing",
+      note: "EmbeddedKafka runs a real Kafka broker in-process — no Docker or external Kafka needed for tests.",
+      variants: [
+        {l:"Unit test for producer (mocked KafkaTemplate)", c:
+`@ExtendWith(MockitoExtension.class)
+class OrderEventProducerTest {
+
+    @Mock KafkaTemplate<String, OrderEvent> kafkaTemplate;
+    @InjectMocks OrderEventProducer producer;
+
+    @Test
+    @DisplayName("publishOrderCreated: sends correct event to correct topic")
+    void publishOrderCreated_sends_correctEvent() {
+        Order order = Order.builder().id(42L).userId(1L).total(999.0).build();
+
+        CompletableFuture<SendResult<String, OrderEvent>> future =
+            CompletableFuture.completedFuture(mock(SendResult.class));
+        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(future);
+
+        producer.publishOrderCreated(order);
+
+        ArgumentCaptor<ProducerRecord<String, OrderEvent>> captor =
+            ArgumentCaptor.forClass(ProducerRecord.class);
+        verify(kafkaTemplate).send(captor.capture());
+
+        ProducerRecord<String, OrderEvent> record = captor.getValue();
+        assertThat(record.topic()).isEqualTo("order-events");
+        assertThat(record.key()).isEqualTo("42");
+        assertThat(record.value().getOrderId()).isEqualTo(42L);
+        assertThat(record.value().getStatus()).isEqualTo(OrderStatus.CREATED);
+    }
+}`},
+        {l:"Integration test with @EmbeddedKafka", c:
+`@SpringBootTest
+@EmbeddedKafka(
+    partitions = 3,
+    topics = {"order-events", "order-events.DLT"},
+    brokerProperties = {
+        "auto.create.topics.enable=true",
+        "log.retention.ms=1000"
+    })
+@TestPropertySource(properties = {
+    "spring.kafka.consumer.auto-offset-reset=earliest",
+    "spring.kafka.consumer.enable-auto-commit=false"
+})
+class OrderKafkaIntegrationTest {
+
+    @Autowired KafkaTemplate<String, OrderEvent> producer;
+    @Autowired OrderProcessingService service;
+
+    @Test
+    void publishAndConsume_orderCreated_processedSuccessfully() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<OrderEvent> received = new AtomicReference<>();
+
+        // Override listener for test
+        doAnswer(inv -> {
+            received.set(inv.getArgument(0));
+            latch.countDown();
+            return null;
+        }).when(service).process(any(OrderEvent.class));
+
+        OrderEvent event = OrderEvent.builder()
+            .orderId(42L).userId(1L).status(OrderStatus.CREATED)
+            .total(999.0).timestamp(Instant.now().toEpochMilli()).build();
+
+        producer.send("order-events", "42", event);
+
+        boolean processed = latch.await(10, TimeUnit.SECONDS);
+        assertThat(processed).isTrue();
+        assertThat(received.get().getOrderId()).isEqualTo(42L);
+        assertThat(received.get().getStatus()).isEqualTo(OrderStatus.CREATED);
+    }
+
+    @Test
+    void poisonPill_sentToDlt_afterMaxRetries() throws Exception {
+        CountDownLatch dltLatch = new CountDownLatch(1);
+
+        doThrow(new RuntimeException("Processing failed"))
+            .when(service).process(any(OrderEvent.class));
+
+        // Listen to DLT topic
+        testConsumer.subscribe("order-events.DLT");
+
+        producer.send("order-events", "99", badEvent);
+
+        boolean receivedOnDlt = dltLatch.await(30, TimeUnit.SECONDS);
+        assertThat(receivedOnDlt).isTrue();
+    }
+}`},
+        {l:"TestContainers for realistic Kafka test", c:
+`@SpringBootTest
+@Testcontainers
+class KafkaTestContainersTest {
+
+    @Container
+    static KafkaContainer kafka = new KafkaContainer(
+        DockerImageName.parse("confluentinc/cp-kafka:7.5.0"))
+        .withKraft(); // Use KRaft mode
+
+    @DynamicPropertySource
+    static void kafkaProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+    }
+
+    @Test
+    void endToEnd_orderFlow() {
+        // Full integration test against real Kafka container
+        // No mocks — tests actual serialization, topic creation, consumer groups
+    }
+}
+// pom.xml: testcontainers-kafka dependency`}
+      ]
+    }
+  ]
+}
+];
+
+// ── HELPERS ────────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── STORAGE ────────────────────────────────────────────────────────────────────
+var STORAGE_KEY = 'kafka_cheat_v1';
+function loadData() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')||{}; } catch(e){return {};} }
+function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e){} }
+function getCustomSections() { return loadData().customSections||{}; }
+function addToSection(sectionTitle, question) {
+  var d = loadData();
+  if (!d.customSections) d.customSections = {};
+  if (!d.customSections[sectionTitle]) d.customSections[sectionTitle] = [];
+  d.customSections[sectionTitle].push(question);
+  saveData(d);
+}
+
+// ── ALL SECTIONS ───────────────────────────────────────────────────────────────
+function getAllSections() {
+  var all = SECTIONS.map(function(s){ return {title:s.title,qs:s.qs,isBuiltIn:true}; });
+  var custom = getCustomSections();
+  Object.keys(custom).forEach(function(title){
+    var existing = all.find(function(s){ return s.title===title; });
+    if (existing) { existing.customQs = custom[title]; }
+    else { all.push({title:title,qs:[],customQs:custom[title],isBuiltIn:false}); }
+  });
+  return all;
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function render(filter) {
+  var root = document.getElementById('root');
+  var noR  = document.getElementById('noResults');
+  filter = (filter||'').toLowerCase().trim();
+  var html = '', total = 0;
+  var all = getAllSections();
+
+  for (var si=0;si<all.length;si++) {
+    var sec = all[si];
+    var allQs = (sec.qs||[]).concat((sec.customQs||[]).map(function(q){
+      return Object.assign({},q,{isCustom:true});
+    }));
+    var items = [];
+    for (var qi=0;qi<allQs.length;qi++) {
+      var q = allQs[qi];
+      if (!filter) { items.push({q:q,idx:qi}); continue; }
+      var hit = q.q.toLowerCase().indexOf(filter)>=0 || ((q.note||'').toLowerCase().indexOf(filter)>=0);
+      if (!hit) for (var vi=0;vi<(q.variants||[]).length;vi++) {
+        if ((q.variants[vi].l||'').toLowerCase().indexOf(filter)>=0 ||
+            (q.variants[vi].c||'').toLowerCase().indexOf(filter)>=0){ hit=true; break; }
+      }
+      if (hit) items.push({q:q,idx:qi});
+    }
+    if (!items.length && filter) continue;
+    total += items.length;
+
+    html += '<div class="section-wrap" data-section="'+esc(sec.title)+'">'+
+            '<div class="section-header">'+
+            '<span class="section-title">'+esc(sec.title)+'</span>'+
+            '<button class="section-add-btn" onclick="openModal(\''+sec.title.replace(/'/g,"\\'")+'\')" >+ Add to this section</button>'+
+            '</div>';
+
+    for (var ii=0;ii<items.length;ii++) {
+      var item=items[ii].q;
+      var badge=item.badge||'badge-custom';
+      var badgeText=badge.replace('badge-','');
+      var noteHtml=item.note?'<div class="note">&#128204; '+esc(item.note)+'</div>':'';
+      var vHtml='';
+      for (var vv=0;vv<(item.variants||[]).length;vv++) {
+        var v=item.variants[vv];
+        vHtml+='<div class="variant"><div class="vlabel">'+esc(v.l)+'</div><pre>'+esc(v.c)+'</pre></div>';
+      }
+      html+='<div class="q-card">'+
+            '<div class="q-trigger">'+
+            '<span class="q-badge '+badge+'">'+badgeText+'</span>'+
+            '<div class="q-text">'+esc(item.q)+'</div>'+
+            '<div class="chevron">&#9660;</div>'+
+            '</div>'+
+            '<div class="q-body">'+noteHtml+vHtml+'</div></div>';
+    }
+    html+='</div>';
+  }
+
+  root.innerHTML = html;
+  noR.style.display=(total===0&&filter)?'block':'none';
+}
+
+// ── ACCORDION ──────────────────────────────────────────────────────────────────
+document.getElementById('root').addEventListener('click', function(e) {
+  var el=e.target;
+  while(el&&el!==this){
+    if(el.classList.contains('section-add-btn')) return;
+    if(el.classList.contains('q-trigger')){
+      var card=el.closest?el.closest('.q-card'):el.parentElement;
+      if(card) card.classList.toggle('open');
+      return;
+    }
+    el=el.parentElement;
+  }
+});
+document.getElementById('searchBox').addEventListener('input',function(){ render(this.value); });
+
+// ── MODAL ──────────────────────────────────────────────────────────────────────
+var variantCount=1;
+
+function populateSectionDropdown(preSelected) {
+  var sel=document.getElementById('qSection');
+  sel.innerHTML='';
+  SECTIONS.forEach(function(s){
+    var opt=document.createElement('option');
+    opt.value=s.title; opt.textContent=s.title;
+    if(preSelected&&s.title===preSelected) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  var div=document.createElement('option');
+  div.disabled=true; div.textContent='── Custom Sections ──';
+  sel.appendChild(div);
+  Object.keys(getCustomSections()).forEach(function(title){
+    var opt=document.createElement('option');
+    opt.value=title; opt.textContent='⭐ '+title;
+    if(preSelected&&title===preSelected) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  var newOpt=document.createElement('option');
+  newOpt.value='__new__'; newOpt.textContent='+ Create new section...';
+  sel.appendChild(newOpt);
+  sel.onchange=function(){
+    document.getElementById('newSectionWrap').style.display=
+      sel.value==='__new__'?'block':'none';
+  };
+}
+
+function openModal(sectionTitle) {
+  variantCount=1;
+  document.getElementById('qTitle').value='';
+  document.getElementById('qNote').value='';
+  document.getElementById('qBadge').value='badge-impl';
+  document.getElementById('variantsWrap').innerHTML=makeVariantBlock(0);
+  document.getElementById('newSectionWrap').style.display='none';
+  populateSectionDropdown(sectionTitle||null);
+  document.getElementById('addModal').style.display='flex';
+  document.getElementById('qTitle').focus();
+}
+function closeModal(){ document.getElementById('addModal').style.display='none'; }
+
+function makeVariantBlock(idx){
+  return '<div class="variant-block" id="vb'+idx+'">'+
+    '<div class="vb-header"><span class="vb-label">Answer / Variant '+(idx+1)+'</span>'+
+    (idx>0?'<button type="button" class="rm-variant" onclick="removeVariant('+idx+')">&#10005; Remove</button>':'')+
+    '</div>'+
+    '<input type="text" class="modal-input" id="vLabel'+idx+'" placeholder="Label (e.g. With Redis)" />'+
+    '<textarea class="modal-code" id="vCode'+idx+'" rows="7" placeholder="Paste your code or notes here..."></textarea>'+
+    '</div>';
+}
+function addVariant(){
+  document.getElementById('variantsWrap').insertAdjacentHTML('beforeend',makeVariantBlock(variantCount));
+  variantCount++;
+}
+function removeVariant(idx){ var e=document.getElementById('vb'+idx); if(e) e.remove(); }
+
+function saveQuestion(){
+  var selEl=document.getElementById('qSection');
+  var sectionTitle=selEl.value;
+  if(sectionTitle==='__new__'){
+    sectionTitle=(document.getElementById('newSectionName')||{value:''}).value.trim();
+    if(!sectionTitle){ alert('Please enter a name for the new section.'); return; }
+  }
+  var title=document.getElementById('qTitle').value.trim();
+  var note=document.getElementById('qNote').value.trim();
+  var badge=document.getElementById('qBadge').value;
+  if(!title){ alert('Please enter a question title.'); return; }
+  var variants=[];
+  for(var i=0;i<variantCount;i++){
+    var lEl=document.getElementById('vLabel'+i),cEl=document.getElementById('vCode'+i);
+    if(!lEl||!cEl) continue;
+    var l=lEl.value.trim(),c=cEl.value.trim();
+    if(!l&&!c) continue;
+    variants.push({l:l||'Solution',c:c});
+  }
+  if(!variants.length){ alert('Please add at least one answer/variant.'); return; }
+  var newQ={q:title,badge:badge,variants:variants};
+  if(note) newQ.note=note;
+  addToSection(sectionTitle,newQ);
+  closeModal();
+  render(document.getElementById('searchBox').value);
+  setTimeout(function(){
+    var el=document.querySelector('[data-section="'+sectionTitle+'"]');
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  },100);
+}
+
+document.getElementById('addModal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+
+render('');
+</script>
+</body>
+</html>
