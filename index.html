@@ -2,22 +2,319 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Java Interview Preparation</title>
-    <ul>
-        <li><a href="Java_DSA_CheatSheet-original.html">DSA</a></li>
-        <br/>
-        <li><a href="Kafka_EventDriven_CheatSheet.html">KAFKA</a></li>
-        <br/>
-        <li><a href="Microservices_CheatSheet.html">MICROSERVICES</a></li>
-        <br/>
-        <li><a href="RestAPI_CheatSheet.html">REST-API</a></li>
-        <br/>
-        <li><a href="SQL_CheatSheet.html">SQL</a></li>
-        <br/>
-        <li><a href="SpringBoot_CheatSheet.html">SPRING-Boot</a></li>
-    </ul>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg:#14131f;
+            --panel:#1b1a2b;
+            --panel-2:#201f34;
+            --border:#2a2942;
+            --text:#e4e2f5;
+            --muted:#8b899e;
+            --dim:#5c5a72;
+
+            --c-dsa:#f78c6c;
+            --c-kafka:#82aaff;
+            --c-micro:#c792ea;
+            --c-rest:#a3e675;
+            --c-sql:#f07178;
+            --c-spring:#ffcb6b;
+        }
+
+        *{margin:0;padding:0;box-sizing:border-box;}
+
+        html{background:var(--bg);}
+
+        body{
+            background:
+                    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(130,170,255,0.10), transparent 60%),
+                    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(199,146,234,0.08), transparent 60%),
+                    var(--bg);
+            color:var(--text);
+            font-family:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:40px 20px;
+            line-height:1.5;
+        }
+
+        .terminal{
+            width:100%;
+            max-width:720px;
+            background:var(--panel);
+            border:1px solid var(--border);
+            border-radius:12px;
+            overflow:hidden;
+            box-shadow:
+                    0 30px 60px -20px rgba(0,0,0,0.55),
+                    0 0 0 1px rgba(255,255,255,0.02);
+            animation:rise 0.6s ease both;
+        }
+
+        @keyframes rise{
+            from{opacity:0; transform:translateY(14px);}
+            to{opacity:1; transform:translateY(0);}
+        }
+
+        .titlebar{
+            display:flex;
+            align-items:center;
+            gap:16px;
+            padding:12px 16px;
+            background:var(--panel-2);
+            border-bottom:1px solid var(--border);
+        }
+
+        .dots{display:flex; gap:7px;}
+        .dot{width:11px; height:11px; border-radius:50%;}
+        .dot.red{background:#ff5f56;}
+        .dot.yellow{background:#ffbd2e;}
+        .dot.green{background:#27c93f;}
+
+        .titlebar-label{
+            flex:1;
+            text-align:center;
+            font-size:12.5px;
+            color:var(--muted);
+            letter-spacing:0.02em;
+        }
+
+        .body-pad{padding:28px 28px 24px;}
+
+        .prompt-line{
+            font-size:13.5px;
+            color:var(--dim);
+            margin-bottom:4px;
+        }
+        .prompt-line .user{color:var(--c-rest);}
+        .prompt-line .at{color:var(--dim);}
+        .prompt-line .host{color:var(--c-kafka);}
+        .prompt-line .path{color:var(--c-spring);}
+        .prompt-line .cmd{color:var(--text); margin-left:4px;}
+
+        h1{
+            font-size:clamp(22px, 4.5vw, 30px);
+            font-weight:700;
+            letter-spacing:-0.01em;
+            margin:14px 0 6px;
+        }
+        h1 .bracket{color:var(--dim); font-weight:500;}
+
+        .tagline{
+            color:var(--muted);
+            font-size:13.5px;
+            margin-bottom:26px;
+        }
+
+        .cursor{
+            display:inline-block;
+            width:8px; height:16px;
+            background:var(--text);
+            margin-left:2px;
+            vertical-align:-3px;
+            animation:blink 1.1s steps(1) infinite;
+        }
+        @keyframes blink{50%{opacity:0;}}
+
+        .tree-label{
+            font-size:13px;
+            color:var(--muted);
+            margin-bottom:10px;
+        }
+
+        ul.tree{
+            list-style:none;
+        }
+
+        ul.tree li{
+            border-left:1px solid transparent;
+        }
+
+        a.entry{
+            display:flex;
+            align-items:baseline;
+            gap:10px;
+            flex-wrap:wrap;
+            text-decoration:none;
+            color:var(--text);
+            padding:9px 10px 9px 4px;
+            border-radius:6px;
+            border-left:2px solid transparent;
+            transition:background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+        }
+
+        a.entry:hover, a.entry:focus-visible{
+            background:rgba(255,255,255,0.035);
+            transform:translateX(3px);
+            outline:none;
+        }
+
+        .connector{
+            color:var(--dim);
+            flex-shrink:0;
+        }
+
+        .filename{
+            font-weight:500;
+            font-size:14.5px;
+        }
+
+        .badge{
+            font-size:10.5px;
+            font-weight:600;
+            letter-spacing:0.06em;
+            padding:2px 7px;
+            border-radius:4px;
+            border:1px solid currentColor;
+        }
+
+        .desc{
+            width:100%;
+            padding-left:26px;
+            font-size:12px;
+            color:var(--dim);
+            margin-top:-2px;
+        }
+
+        li[data-topic="dsa"] a.entry:hover{border-left-color:var(--c-dsa);}
+        li[data-topic="dsa"] .filename{color:var(--c-dsa);}
+        li[data-topic="dsa"] .badge{color:var(--c-dsa);}
+
+        li[data-topic="kafka"] a.entry:hover{border-left-color:var(--c-kafka);}
+        li[data-topic="kafka"] .filename{color:var(--c-kafka);}
+        li[data-topic="kafka"] .badge{color:var(--c-kafka);}
+
+        li[data-topic="micro"] a.entry:hover{border-left-color:var(--c-micro);}
+        li[data-topic="micro"] .filename{color:var(--c-micro);}
+        li[data-topic="micro"] .badge{color:var(--c-micro);}
+
+        li[data-topic="rest"] a.entry:hover{border-left-color:var(--c-rest);}
+        li[data-topic="rest"] .filename{color:var(--c-rest);}
+        li[data-topic="rest"] .badge{color:var(--c-rest);}
+
+        li[data-topic="sql"] a.entry:hover{border-left-color:var(--c-sql);}
+        li[data-topic="sql"] .filename{color:var(--c-sql);}
+        li[data-topic="sql"] .badge{color:var(--c-sql);}
+
+        li[data-topic="spring"] a.entry:hover{border-left-color:var(--c-spring);}
+        li[data-topic="spring"] .filename{color:var(--c-spring);}
+        li[data-topic="spring"] .badge{color:var(--c-spring);}
+
+        .footer{
+            margin-top:22px;
+            padding-top:16px;
+            border-top:1px dashed var(--border);
+            font-size:11.5px;
+            color:var(--dim);
+            display:flex;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+        .footer .comment{color:var(--dim);}
+        .footer .comment .slashes{color:var(--c-rest); opacity:0.6;}
+
+        @media (max-width:480px){
+            .body-pad{padding:22px 18px 20px;}
+            .desc{padding-left:20px;}
+        }
+
+        @media (prefers-reduced-motion: reduce){
+            *{animation:none !important; transition:none !important;}
+        }
+    </style>
 </head>
 <body>
+
+<main class="terminal">
+    <div class="titlebar">
+        <div class="dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="titlebar-label">java-interview-prep — zsh</div>
+    </div>
+
+    <div class="body-pad">
+        <div class="prompt-line">
+            <span class="user">niranjan</span><span class="at">@</span><span class="host">backend</span><span class="path">:~$</span>
+            <span class="cmd">ls -la java-interview-prep/</span>
+        </div>
+
+        <h1>Java Interview Prep<span class="cursor"></span></h1>
+        <p class="tagline">Six cheat sheets. Zero fluff. Everything you'd actually get asked.</p>
+
+        <p class="tree-label">java-interview-prep/</p>
+
+        <ul class="tree">
+            <li data-topic="dsa">
+                <a class="entry" href="Java_DSA_CheatSheet-original.html">
+                    <span class="connector">├──</span>
+                    <span class="filename">data-structures-algorithms.html</span>
+                    <span class="badge">DSA</span>
+                </a>
+                <div class="desc">// arrays, trees, graphs, DP, complexity — the whiteboard round</div>
+            </li>
+
+            <li data-topic="kafka">
+                <a class="entry" href="Kafka_EventDriven_CheatSheet.html">
+                    <span class="connector">├──</span>
+                    <span class="filename">kafka-event-driven.html</span>
+                    <span class="badge">KAFKA</span>
+                </a>
+                <div class="desc">// partitions, consumer groups, offsets, delivery semantics</div>
+            </li>
+
+            <li data-topic="micro">
+                <a class="entry" href="Microservices_CheatSheet.html">
+                    <span class="connector">├──</span>
+                    <span class="filename">microservices.html</span>
+                    <span class="badge">MICROSERVICES</span>
+                </a>
+                <div class="desc">// service boundaries, resilience, saga, circuit breakers</div>
+            </li>
+
+            <li data-topic="rest">
+                <a class="entry" href="RestAPI_CheatSheet.html">
+                    <span class="connector">├──</span>
+                    <span class="filename">rest-api.html</span>
+                    <span class="badge">REST-API</span>
+                </a>
+                <div class="desc">// verbs, status codes, idempotency, versioning</div>
+            </li>
+
+            <li data-topic="sql">
+                <a class="entry" href="SQL_CheatSheet.html">
+                    <span class="connector">├──</span>
+                    <span class="filename">sql.html</span>
+                    <span class="badge">SQL</span>
+                </a>
+                <div class="desc">// joins, indexes, window functions, query plans</div>
+            </li>
+
+            <li data-topic="spring">
+                <a class="entry" href="SpringBoot_CheatSheet.html">
+                    <span class="connector">└──</span>
+                    <span class="filename">spring-boot.html</span>
+                    <span class="badge">SPRING-BOOT</span>
+                </a>
+                <div class="desc">// beans, auto-config, AOP, transactions, testing</div>
+            </li>
+        </ul>
+
+        <div class="footer">
+            <span class="comment"><span class="slashes">//</span> 6 files · offline-ready · no build step</span>
+            <span class="comment">exit 0</span>
+        </div>
+    </div>
+</main>
 
 </body>
 </html>
